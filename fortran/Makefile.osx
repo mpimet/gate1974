@@ -1,0 +1,35 @@
+NETCDFF_ROOT=/opt/homebrew
+NETCDF_ROOT=/opt/homebrew
+
+NETCDF_INCLUDE=${NETCDFF_ROOT}/include
+NETCDF_LIB=${NETCDF_ROOT}/lib
+NETCDFF_LIB=${NETCDFF_ROOT}/lib
+
+FC=gfortran -cpp
+FFLAGS=-I${NETCDF_INCLUDE}
+
+LD=gfortran
+LDFLAGS=-L${NETCDF_LIB} -lnetcdf -L${NETCDFF_LIB} -lnetcdff
+
+SOURCES = $(wildcard *.f90)
+
+MODULES = GATE_metadata_mod GATE_utils_mod GATEaircraft_time_mod
+MODULE_OBJECTS = $(MODULES:=.o)
+MODULE_MODS = $(MODULES:=.mod)
+
+OBJECTS = $(filter-out $(MODULES:=.f90), $(SOURCES:.f90=.o))
+EXECUTABLES = $(filter-out $(MODULES:=.x), $(SOURCES:.f90=.x))
+
+default: $(EXECUTABLES)
+
+$(MODULE_MODS): %.mod: %.f90
+	$(FC) -J$(NETCDF_ROOT)/include $(FFLAGS) -c $<
+
+%.o: %.f90 $(MODULE_MODS)
+	$(FC) -O2 -J$(NETCDF_ROOT)/include $(FFLAGS) -c $<
+
+%.x: %.o $(MODULE_OBJECTS)
+	$(LD) $(LDFLAGS) $< $(MODULE_OBJECTS) -o $@
+
+clean:
+	rm -f *.mod *.o *.x
