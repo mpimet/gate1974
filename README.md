@@ -1,4 +1,4 @@
-<img src="./doc/figures/GATE1974-Logo.png" alt="GATE logo" style="float: right; margin: 10px;">
+<img src="./doc/figures/GATE1974-Logo-small.png" alt="GATE logo" style="float: right; margin: 10px;">
 
 # GATE Data Processing Pipeline
 
