@@ -1,5 +1,7 @@
 # GATE Data Processing Pipeline
 
+René Redler, MPI Meteorology Hamburg
+
 ## 1.) Handling of Initial Tar Files
 
 ### `mv-and-expand.sh`
