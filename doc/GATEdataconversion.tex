@@ -1,0 +1,1219 @@
+\documentclass{article}
+\usepackage{siunitx}
+\usepackage{array}
+\usepackage{booktabs}    % for \toprule, \midrule, \bottomrule
+\usepackage{float}       % for [H] placement
+\usepackage{caption}     % for better caption handling
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}  % For subfigures (if needed)
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm} % Vertical space from top
+
+    % Title
+    {\LARGE\bfseries GATE Data ASCII to NetCDF Conversion\par}
+    \vspace{2cm}
+
+    {\large Prepared by René Redler (MPI-M) on February 6, 2026\par}
+    \vspace{3cm}
+
+    \includegraphics[width=0.4\textwidth]{figures/GATE1974-Logo.png}
+    \vspace{1cm}
+
+    % Optional: Add a line or separator
+    \rule{\textwidth}{1pt}
+    \vspace{1cm}
+
+    % Optional: Add a note or version
+    {\small Version 3.2\par}
+
+    \vfill % Push content to bottom
+
+    % Footer (optional)
+    {\small Max Planck Institute for Meteorology (MPI-M)\par}
+
+\end{titlepage}
+
+
+
+\section{The ASCII Data Files}
+
+The following tar files were provided by Julia Windmiller (MPI-M) from NOAA:
+\begin{itemize}
+\item 1001-1400\_19740706-19740716.tar
+\item 2.00.03.101-3.00.02.104\_19740601-19740930.tar
+\item 2001-2600\_19740714-19740817.tar
+\item 3.00.02.104-3.31.02.101\_19740601-19740930.tar
+\item 3011-4074\_19740830-19740910.tar
+\item 3.31.02.101-3.33.02.101\_19740601-19740930.tar
+\item 3.33.02.101-3.36.21.102\_19740601-19740930.tar
+\item 3.36.21.102-3.60.02.105\_19740601-19740930.tar
+\item 3.60.02.105-3.64.02.101\_19740601-19740930.tar
+\item 3.64.02.101-3.69.02.104\_19740601-19740930.tar
+\item 4075-4772\_19740909-19740919.tar
+\item 4.34.04.110-5.00.02.101\_19740601-19740930.tar
+\item 5.00.02.101-5.36.02.101\_19740601-19740930.tar
+\item 5.36.02.101-5.36.02.104\_19740601-19740930.tar
+\item 5.36.02.104-5.60.02.102\_19740601-19740930.tar
+\item 5.36.02.104-5.60.02.102\_19740601-19740930.tar
+\end{itemize}
+
+These tar files contain ASCII data files that were extracted into
+separate directories, each named according to the corresponding tar
+file. The content tar files were extracted into directories with the
+following names:
+
+\begin{itemize}
+\item 1001-1400\_19740706-19740716
+\item 2.00.03.101-3.00.02.104\_19740601-19740930
+\item 2001-2600\_19740714-19740817
+\item 3.00.02.104-3.31.02.101\_19740601-19740930
+\item 3011-4074\_19740830-19740910
+\item 3.31.02.101-3.33.02.101\_19740601-19740930
+\item 3.33.02.101-3.36.21.102\_19740601-19740930
+\item 3.36.21.102-3.60.02.105\_19740601-19740930
+\item 3.60.02.105-3.64.02.101\_19740601-19740930
+\item 3.64.02.101-3.69.02.104\_19740601-19740930
+\item 4075-4772\_19740909-19740919
+\item 4.34.04.110-5.00.02.101\_19740601-19740930
+\item 5.00.02.101-5.36.02.101\_19740601-19740930
+\item 5.36.02.101-5.36.02.104\_19740601-19740930
+\item 5.36.02.104-5.60.02.102\_19740601-19740930
+\item 5.36.02.104-5.60.02.102\_19740601-19740930
+\end{itemize}
+
+Appendix E of the GATE Report No 13, The International Data Management
+Plan Part I (page 121 ff.), provides detailed specifications for the
+magnetic tape and file format.
+
+\subsection{Character encoding}
+
+Each data section is delimited by two leading and one terminating
+control file. Since the embedded metadata in the data files are
+sufficient for interpretation, the control files are not
+analyzed. Note that two distinct character encodings were used in file
+creation, as indicated in line 3 of the second control file:
+\begin{quote}
+\scriptsize
+\begin{verbatim}
+01234567890=:> /STUVWXYZ,(-JKLMNOPQR*};+ABCDEFGHI.){<ÿ                       003
+\end{verbatim}
+\end{quote}
+indicating the use of the EBCDIC 037 character Set Layout, IBM 3270 Data Stream
+\begin{quote}
+\scriptsize
+\begin{verbatim}
+0123456789  '= /STUVWXYZ,%-JKLMNOPQR  ;&ABCDEFGHI.  +!                       003
+\end{verbatim}
+\end{quote}
+indicating Sanitized 3270 Terminal Log character set.
+
+While this is not important for the data itself as they contain only
+numbers, the Fortran format string is affected by the different
+character sets. For the DC7\_CEV aircraft e.g. the same format string
+appears in two manifestations. What appears as
+\begin{quote}
+\scriptsize
+\begin{verbatim}
+1(I1,I4,I10,I5,A10,I6,I4,I5,A5,30X,15(I6,2I6,I5,2I4,5I5,2I4,2I5,2I4,4F6.1,   008
+1F5.1,9I1),40X)                                                              009
+\end{verbatim}
+\end{quote}
+written with the \textit{EBCDIC 037} character set layout is converted to 
+\begin{quote}
+\scriptsize
+\begin{verbatim}
+1%I1,I4,I10,I5,A10,I6,I4,I5,A5,30X,15%I6,2I6,I5,2I4,5I5,2I4,2I5,2I4,4F6.1,   008
+1F5.1,9I1<,40X<                                                              009
+\end{verbatim}
+\end{quote}
+with the \textit{Sanitized 3270 Terminal Log} character set.
+
+\subsection{Sorting of files}
+
+Each ASCII file contains two header sections with various metadata,
+which were used to pre-select and sort the files. Using the
+\texttt{GATEsort.sh} script, each file is scanned for specific
+platform types: \texttt{BLLN}, \texttt{BUOY}, \texttt{SHIP},
+\texttt{A/C}, and \texttt{ARCR}. The platform name, indicating the ship
+or aircraft from which data were collected or devices launched, is
+extracted from the headers. Based on these types, dedicated
+directories are created, with subdirectories for each individual
+platform. The \texttt{A/C} and \texttt{ARCR} types are combined into a
+single \texttt{AIRCRAFT} directory. \texttt{BLLN} files are copied to
+the \texttt{RADIOSONDE} directory, \texttt{SHIP} files are copied to
+\texttt{DSHIP}, and \texttt{BUOY} files are placed in a dedicated
+\texttt{BUOY} directory.
+
+
+Not every type-platform combination contains a homogeneous set of
+files. To address this, the Fortran format string present in each data
+file—used during its original writing—was extracted and used to
+generate an MD5 checksum. The first six digits of this checksum were
+then used as the name for a subdirectory. Files were subsequently
+sorted into these directories based on their format string. It was
+observed that files written with the same format string consistently
+contain related data sets, meaning they share identical variable
+precision, ordering, and variable sets.
+
+However, in rare cases such as with the DC7 data (see
+above) identical data layouts were written using two different
+character encodings, resulting in distinct MD5 checksums and,
+consequently, files being placed into separate subdirectories. While
+these discrepancies were easily identifiable, for the sake of
+simplicity, we did not implement additional checks or merge such
+directories, as the differences were minimal and readily apparent.
+
+\section{Metadata}
+
+Apart from the type, platform and format discussed above, the first 24
+lines of each data file keep information about the sampling interval,
+start and end positions and time for the measurement contained in this
+file and some first description of the data itself. This is followed
+by multiples of 24 lines describing the physical fields contained in
+the data file one by one together with units and scaling factors.
+
+Common to all ASCII files, the physical units used to write the data
+are \si{\milli\bar} for pressure, \si{\degreeCelsius} for all
+temperature-related variables, \si{\metre\per\second} for velocity (or
+wind), \si{\watt\per\square\metre} for radiation, and
+\si{\gram\per\kilogram} for specific humidity, and height in
+\si{\metre}. For writing to NetCDF, all units are converted to SI
+units which requires temperature in \si{\kelvin}, specific humidity as
+\si{\kilogram\per\kilogram}, and pressure as \si{\pascal}).
+
+Time information is converted to seconds since the start of the
+measurement, which is available from the metadata.
+
+\section{Data section}
+
+Since the original data were written using Fortran programs, it was
+most natural to begin the data conversion process in Fortran as well,
+enabling direct reuse of the format strings. For certain data sets,
+however, the conversion programs were rewritten in C++. In these
+cases, careful attention is required to precisely align the 24×80
+character records with the appropriate memory layout—ensuring correct
+parsing of integers and floating-point values prior to NetCDF
+conversion. The C++ implementation produces bit-identical NetCDF
+output when compared to the reference Fortran version, making it a
+reliable and portable alternative. As such, it serves as a valuable
+blueprint for users unfamiliar with Fortran who wish to convert
+additional data sets or revisit previously processed data.
+
+For each homogeneous data set, a dedicated program was developed to
+read the data line by line and file by file. Each data record spans 24
+lines, with each line containing 80 characters. Every record begins
+with four integers, followed by a sequence of individual
+measurements. While the low-level reading of lines follows a
+consistent structure across all files, interpreting the data requires
+human expertise based on metadata. Although the metadata are described
+to some extent according to the GATE standard, this standard does not
+ensure fully self-describing data. For example, quality control
+parameters are stored in a non-unique manner, and time
+information—along with its format—varies significantly between data
+sets. These inconsistencies are detailed in the specific sections
+below.
+
+\subsection{Balloon/Radiosonde Data (BLLN)}
+
+VLF Radiosonde data are available from research vessels
+\texttt{BIDASSOA},
+\texttt{CHARTERER},
+\texttt{DALLAS},
+\texttt{ENDURER},
+\texttt{GILLISS},
+\texttt{METEOR},
+\texttt{OCEANOGRPR},
+\texttt{QUADRA},
+\texttt{RESEARCHER}, and
+\texttt{VANGUARD}.
+
+Although the data are provided by different ship crews and use varying
+character sets resulting in different MD5 checksums they are all
+recorded in the same format.
+
+\begin{table}[H]
+\centering
+\caption{Radiosonde data}
+\label{tab:radiosonde-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name} \\
+\midrule
+TIME\_AFT\_LAUNCH  & flight\_time & \\
+PRESSURE           & p        & air\_pressure\\
+ALTITUDE           & altitude & geopotential\_height\\
+TEMPERATURE        & ta       & temperature\\
+TEMP\_ERROR        & ta\_err  & temperature\_error\\
+SPECIFIC\_HUMDTY   & q        & specific\_humidity \\
+HUMDTY\_ERROR      & q\_err   & specific\_humidity\_error \\
+WIND\_VEL\_U\_COMP & u        & eastward\_wind \\
+U\_COMP\_ERROR     & u\_err   & eastward\_wind\_error \\
+WIND\_VEL\_V\_COMP & v        & northward\_wind \\
+V\_COMP\_ERROR     & v\_err   & northward\_wind\_error \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Launch start and end positions are written as attributes into the NetCDF file.
+Missing data are set to something like 999 or similar, and while converting
+the measurements we apply a \texttt{\_FillValue} to those data when
+writing the NetCDF files. Thus it can happen that all data for a level
+are missing while the level itself is still kept in the vertical
+axis. For each data record the time is given in seconds after lauch
+which can easily converted into a NetCDf time axis expressed as
+"seconds since'' lauch time. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/radiosonde_positions.png}
+    \caption[Radiosonde positions]{%
+        Ship positions by ship name. Each color represents a different ship. 
+        The scatter plot shows the geographic distribution of
+        radiosonde launches over time.
+    }
+    \label{fig:radiosonde_positions}
+\end{figure}
+
+Radiosonde data from
+\texttt{LA\_PERLE},
+\texttt{CAPRICORNE}, and
+\texttt{JEAN\_CHARCOT}
+have not yet been processed as each of them contains only 2 files,
+even though all of these 6 files have the identical format but
+different from the above, with dew point temperature rather than
+specific humidity, and unlike the upper set of data no error estimates
+for the individual variables. Radiosonde data in \texttt{CCGS\_QUADRA}
+even come with 7 different formats each with one or two files.
+
+\subsection{Buoy Data}
+
+\subsubsection*{Reserch Vessel Meteor (\texttt{METEOR})}
+
+\begin{table}[H]
+\centering
+\caption{Meteor Buoy Data}
+\label{tab:meteor-buoy-names}
+\begin{tabular}{llp{3cm}}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name} or Quality check\\
+\midrule
+HOUR.MINUTE     & time & \\
+DAY             & time & \\
+WINDSPEED       & ws   & wind\_speed \\
+VAL.FLAG WINDSP &      & if == 1 \\
+WIND-DIRECTION  & wd   & wind\_from\_direction\\
+VAL.FLAG DIRECT &      & if == 1  \\
+DRY BULB TEMP.  & dbt  & dry\_bulb\_temperature \\
+VAL.FLAG TEMP   &      & if == 1 \\
+SPEL. HUMIDITY  & q    & specific\_humidity \\
+VAL.FLAG HUMID. &      & if == 1 \\
+WATER TEMP.     & sst  & sea\_surface\_temperature \\
+VAL.FLAG WATER. &      & if == 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Time is given as a float in format HH.MM with no seconds, the day is
+provided as float but without decimals, representing the day of the year.
+
+\subsubsection*{\texttt{HYDROGRAPHIC\_SHIP}}
+
+\begin{table}[H]
+\centering
+\caption{Hydrographic Ship Buoy Data}
+\label{tab:hydro-buoy-names}
+\begin{tabular}{llp{3cm}}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name} or Quality check\\
+\midrule
+SEQUENCE NUMBER &     & \\
+QUALITY CONTROL &     & \\
+DATE OF OB      &     & \\
+TIME OF OB      &     & \\
+WIND-DIRECTION  & wd  & wind\_from\_direction \\
+WINDSPEED       & ws  & wind\_speed \\
+DRY BULB TEMP   & dbt & dry\_bulb\_temperature \\
+S/L PRESSURE    & psl & sea\_level\_pressure \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The date of the observation in integer format is given as in day of
+the year while time is provided as a character HH:MM representing hour
+and minute. Seconds are assumed to be zero.  The quality control
+parameter is provided as a character string indicating the quality for
+time, wind direction, wind spee and the four data records. A digit is
+set to 0, 1 or 2, depending on whether the data are good, suspect or
+meaningless. Here we consider only good data. If time is not reliable
+we discard the whole record, otherwise individual variables are
+flagged with a \texttt{\_FillValue} if indicated by the quality
+parameter.
+
+\subsection{Ship Data}
+
+In the converted dataset ship borne measurements are available in 
+\texttt{DALLAS},
+\texttt{FAY},
+\texttt{FAYE},
+\texttt{JAMES\_M\_GILLISS},
+\texttt{METEOR},
+\texttt{PLANET}, and
+\texttt{RESEARCHER}
+
+
+\subsubsection{Research Vessels James M. Gilliss
+  (\texttt{JAMES\_M\_GILLISS}),  Dallas \texttt{DALLAS}, and NOAAS Researcher (\texttt{RESEARCHER})}
+
+We first focus on hourly averages of surface meteorological data in
+fdfbef available for all three ships.
+
+\begin{table}[H]
+\centering
+\caption{Gilliss, Dallas and Researcher Ship Data}
+\label{tab:gillis-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+DATE            &  & \\
+TIME            &  time & \\
+LATITUDE        &  lat  & \\
+LONGITUDE       &  lon  & \\
+SHIP SPEED      &  & \\
+SHIP HEADING    &  & \\
+INC.SOL.RAD.    &  rsds & incoming\_solar\_radiation \\
+REFL.SOL.RAD.   &  rlus & reflective\_solar\_radiation\\
+NET RADIATION   &  nrad & net\_radiation\\
+KOLLS.PRESSURE  &  & \\
+ROSE.PRESSURE   &  p    & air\_pressure \\
+SEA SURF.TEMP.  &  sst  & sea\_surface\_temperature \\
+DRY BULB TEMP.  &  & \\
+WET BULB TEMP.  &  & \\
+SPEC.HUMIDITY 1 &  q    & specific\_humidity \\
+SPEC.HUMIDITY 2 &  & \\
+DEW PT.TEMP. 1  &  & \\
+DEW PT.TEMP. 2  &  & \\
+WIND SPEED-BOOM &  & \\
+WIND SPEED-MAST &  & \\
+WIND DIR.-BOOM  &  & \\
+WIND DIR.-MAST  &  & \\
+WIND,U-COM,BOOM &  & \\
+WIND,V-COM,BOOM &  & \\
+WIND,U-COM,MAST &  & \\
+WIND,V-COM,MAST &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Except for dew point temperature, specific humidity and wind u- and
+v-components a number of counts used to compute the hourly averages is
+provided.
+
+In the metadata section it is stated that "the latitude and longitude
+in each data cycle define the postion at the nominal time assigned to
+that record and are not averages.''
+
+Date and time are encoded as integer YYMMDD and HHMMSST which are
+converted to "seconds\_since'' the start of the measurements of the
+repsective data set (file). As no quality parameter are provided we
+discarded all records with unreasonable positions and times. Time has
+to increase from record to record while latitudes and longitudes are
+required to stay within 180\si{\degree}W-180\si{\degree}E and
+90\si{\degree}S-90\si{\degree}N. Invalid data (values lower
+than zero) are discarded.
+
+From Dallas, files are processed with 3-minute and hourly data. The
+sampling intervall has been appended to the NetCDF file name. When
+concattenating files these two goups have to separated.
+
+From James M. Gilliss and Researcher, 4 different sampling rates are
+available, 3 minutes, 10 minutes, 30 minutes, and hourly.
+
+Boundary layer meteorology data with 4 second instant, 3 minute and
+hourly averages are available in subdirectories 0f8f15, 1b4578,
+1b4578, 1d2616, 1da09a, 1e90eb, 2707b8, 270e2a, 2abe9e, 69f232,
+97c87c, b32413, cd6756, f5ec40, fed03c, and ffed68.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/ship_positions.png}
+    \caption[Ship positions]{%
+        Ship positions by ship name. Each color represents a different ship. 
+        The scatter plot shows the geographic distribution of measurements over time.
+    }
+    \label{fig:ship_positions}
+\end{figure}
+
+\subsubsection{Research Vessels Meteor (\texttt{METEOR}), H.J.W. FAY (\texttt{FAY}, \texttt{FAYE}) and Planet (\texttt{PLANET})}
+
+Here we first focus on subdirectory 1a7095, available for all three vessels.
+
+\begin{table}[H]
+\centering
+\caption{Meteor, Fay and Planet Ship Data}
+\label{tab:meteor-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name} \\
+\midrule
+DAY OF EVENT   &      & \\
+TIME OF EVENT  & time & \\
+LATITUDE       & lat  & \\
+LONGITUDE      & lon  & \\
+ PRESSURE      & p    & air\_pressure \\
+TEMPERATURE    & ta   & air\_temperature \\
+WET-BULB TEMP  &  & \\
+WATER TEMP     & sst  & sea\_surface\_temperature \\
+WIND DIRECTION &  & \\
+WINDSPEED      &  & \\
+TOTAL CLOUD    &  & \\
+LOW CLOUD      &  & \\
+MIDDLE CLOUD   &  & \\
+HIGH CLOUD     &  & \\
+RAIN DURATION  &  & \\
+RAIN AMOUNT    &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Date and time are encoded as float YYMMDD and HHMMSST which are
+converted to "seconds\_since'' the start of the measurements of the
+repsective data set (file). As no quality parameter are provided we
+discarded all records with unreasonable positions and times. Time is
+to increase from record to record while latitudes and longitudes are
+required to stay within 180\si{\degree}W-180\si{\degree}E and
+90\si{\degree}S-90\si{\degree}N. Invalid data values (values outside
+of a reasonable data range (pressure larger than 0 mbar and temperatures
+between 0 and 50\si{\degreeCelsius}). (Data are converted to SI units when
+written to the NetCDF file.
+
+For Meteor, other data sets like 1a7095, 25f518, a72c5a, or 7b0654,
+focus on triples pressure, geopotential and irradiance; others like
+6810fa on oceanographic parameters like waves and swell. 517055,
+8b4723, c9263e, and df1d53 contain reflected and incoming shortwave
+radiation, net global downward and terrestrial longwave radiation.
+
+\subsubsection{Sea Surface Temperature from GATE and Commercial
+  Ships (\texttt{GATE\_AND\_COMM\_SHIPS})}
+
+The \texttt{GATE\_AND\_COMM\_SHIPS} directory contains post-processed
+sea surface temperature data that were collected by commercial as well
+as GATE ships. Each file contains a daily mean on a half degree mesh
+covering the domain between 106\si{\degree}W-62\si{\degree}E and
+22\si{\degree}S-38\si{\degree}N. In the metadata section it is written
+that "the mesh was built from raw data by using the relaxation method
+and three-day averaging (each day except the first and 100th day was
+averaged with its preceeding and succeeding day for each final mesh
+value).'' In the NetCDF files the time is set to 12:00:00, the middle
+of the day, while in the ASCII files the time is set to 00:00:00.
+
+\subsection{Aircraft Data}
+
+For airborne measurements we first focus on the time averaged data
+from 6 aircraft platforms.
+
+NCAR Electra (\texttt{NCAR\_ELECTRA\_MEANS}),
+NOAA DC-6 39 Charlie (\texttt{NOAA\_DC-6\_MEANS}),
+NCAR Queen Air (\texttt{NCAR\_QUEEN\_AIR\_MEANS}),
+NASA Convair 990 (\texttt{NASA\_CONVAIR\_990\_MEANS}),
+Lockheed C-130B Hercules (\texttt{NOAA\_US-C130\_MEANS}),
+and the high flying NCAR Sabreliner (\texttt{NCAR\_SABRE\_MEANS}).
+
+For all files we require time
+to increase from record to record while latitudes and longitudes are
+required to stay within 180\si{\degree}W-180\si{\degree}E and
+90\si{\degree}S-90\si{\degree}N. Otherwise records are discarded.
+
+\subsubsection{NCAR Electra (\texttt{NCAR\_ELECTRA\_MEANS})}
+
+One minute mean data were computed from 1 second data, quality flags
+from 1 to 7 indicate how many data were used for the mean, 9 indicates
+missing values.
+
+Time is indicated as float/real HHMMSS provided as integer.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/electra-mean-positions.png}
+    \caption[NCAR Electra flight tracks]{%
+        NCAR Electra flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:electra-mean-positions}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{NCAR Electra 1-minute mean}
+\label{tab:electra-mean-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+TIME IN GMT      & time     & \\
+LATITUDE         & lat      & \\
+LONGITUDE        & lon      & \\
+STATIC  PRESSRE  & p        & air\_pressure \\
+SD OF PRESSURE   & std\_p   & standard\_deviation\_of\_air\_pressure \\
+RADAR ALTITUDE   & z        & altitude \\
+SD OF RADAR ALT  & std\_z   & standard\_deviation\_of\_altitude \\
+AMBNT TEMP BOOM  &  & \\
+SD OF BOOM TEMP  &  & \\
+AMBIENT TEMP     & ta       & air\_temperature \\
+SD OF TEMP       & std\_ta  & standard\_deviation\_of\_air\_temperature \\
+DEW POINT TEMP   & dew      & dew\_point\_temperature \\
+SD OF DEW POINT  & std\_dew & standard\_deviation\_of\_dew\_point \\
+U WIND COMPNT    &  & \\
+SD OF U WIND     &  & \\
+V WIND COMPNT    &  & \\
+ SD OF V WIND    &  & \\
+ W WIND COMPNT   &  & \\
+ SD OF W WIND    &  & \\
+ INS TRUE HEADG  &  & \\
+ SD OF HEADING   &  & \\
+ TRUE AIRSPEED   &  & \\
+ INS PITCH ANGL  &  & \\
+ INS ROLL ANGLE  &  & \\
+ LONG RAD DOWN4  &  & \\
+ SHORT RAD DOWN1 &  & \\
+ SHORT RAD DOWN2 &  & \\
+ SHORT RAD DOWN3 &  & \\
+ LONG RAD UP4    &  & \\
+ SHORT RAD UP1   &  & \\
+ SHORT RAD UP2   &  & \\
+ SHORT RAD UP3   &  & \\
+ QUALITY FLAGS   &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For writing the NetCDF file we check for respective missing value and
+set those to a \texttt{\_FillValue}. Records with non-valid positions
+are discarded as well records going back in time.
+
+
+
+\subsubsection{NOAA DC-6 39 Charlie (\texttt{NOAA\_DC-6\_MEANS}) and Lockheed C-130B Hercules (\texttt{NOAA\_US-C130\_MEANS})}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/dc6-mean-positions.png}
+    \caption[NOAA DC-6 39 Charlie flight tracks]{%
+        NOAA DC-6 39 Charlie flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:dc6-mean-positions}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/us-c130-mean-positions.png}
+    \caption[Lockheed C-130B Hercules flight tracks]{%
+        Lockheed C-130B Hercules flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:c130-mean-positions}
+\end{figure}
+
+
+One minute mean data were computed from 1 second data, quality flags
+from 1 to 7 indicate how many data were used for the mean, 9 indicates
+missing values.
+
+Time is indicated as float/real HHMMSS provided as integer.
+
+\begin{table}[H]
+\centering
+\caption{NOAA DC-6 39 Charlie and Lockheed C-130B Hercules 1-minute mean}
+\label{tab:dc6-c130-mean-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+TIME IN GMT     & time     & \\
+LATITUDE        & lat      & \\
+LONGITUDE       & lon      & \\
+STATIC  PRESSRE & p        & air\_pressure \\
+SD OF PRESSURE  & std\_p   & standard\_deviation\_of\_air\_pressure \\
+RADAR ALTITUDE  & z        & altitude \\
+SD OF RADAR ALT & std\_z   & standard\_deviation\_of\_altitude \\
+AMBIENT TEMP    &  & \\
+SD OF TEMP      &  & \\
+DEW POINT TEMP  & dew      & dew\_point\_temperature \\
+SD OF DEW POINT & std\_dew & standard\_deviation\_of\_dew\_point\_temperature \\
+U WIND COMPNT   &  & \\
+SD OF U WIND    &  & \\
+V WIND COMPNT   &  & \\
+SD OF V WIND    &  & \\
+INS TRUE HEADG  &  & \\
+SD OF HEADING   &  & \\
+TRUE AIRSPEED   &  & \\
+INS PITCH ANGL  &  & \\
+INS ROLL ANGLE  &  & \\
+LONG RAD DOWNWD &  & \\
+SHORT RAD DOWN  &  & \\
+LONG RAD UPWD   &  & \\
+SHORT RAD UPWD  &  & \\
+QUALITY FLAGS   &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For writing the NetCDF file we check for respective missing value and
+set those to a \texttt{\_FillValue}. Records with non-valid positions
+are discarded as well records going back in time.
+
+
+
+\subsubsection{NCAR Queen Air (\texttt{NCAR\_QUEEN\_AIR\_MEANS})}
+
+One minute mean data were computed from 1 second data, quality flags
+from 1 to 7 indicate how many data were used for the mean, 9 indicates
+missing values.
+
+Time is indicated as float/real HHMMSS provided as integer.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/queen-air-mean-positions.png}
+    \caption[NCAR Queen Air flight tracks]{%
+        NCAR Queen Air flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:queen-air-mean-positions}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{NCAR Queen Air 1-minute mean}
+\label{tab: queen-air-mean-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+TIME IN GMT     & time     & \\
+LATITUDE        & lat      & \\
+LONGITUDE       & lon      & \\
+STATIC  PRESSRE & p        & air\_pressure \\
+SD OF PRESSURE  & std\_p   & standard\_deviation\_of\_air\_pressure \\
+AMBIENT TEMP    & ta       & air\_temperature \\
+SD OF TEMP      & std\_ta  & standard\_deviation\_of\_air\_temperature \\
+REVRS FLOW TEMP &  & \\
+SD OF REVS TEMP &  & \\
+DEW POINT TEMP  & dew      & dew\_point\_temperature \\
+SD OF DEW POINT & std\_dew & standard\_deviation\_of\_dew\_point\_temperature\\
+U WIND COMPNT   &  & \\
+SD OF U WIND    &  & \\
+V WIND COMPNT   &  & \\
+SD OF V WIND    &  & \\
+W WIND COMPNT   &  & \\
+SD OF W WIND    &  & \\
+INS TRUE HEADG  &  & \\
+SD OF HEADING   &  & \\
+TRUE AIRSPEED   &  & \\
+INS PITCH ANGL  &  & \\
+INS ROLL ANGLE  &  & \\
+QUALITY FLAGS   &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For writing the NetCDF file we check for respective missing value and
+set those to a \texttt{\_FillValue}. Records with non-valid positions
+are discarded as well records going back in time.
+
+
+\subsubsection{NASA Convair 990 (\texttt{NASA\_CONVAIR\_990\_MEANS})}
+
+One minute mean data were computed from 1 second data, quality flags
+from 1 to 7 indicate how many data were used for the mean, 9 indicates
+missing values.
+
+Time is provided as float/real HHMMSS.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/convair-mean-positions.png}
+    \caption[NASA Convair 990 flight tracks]{%
+        NASA Convair 990 flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:dc6-mean-positions}
+\end{figure}
+
+
+\begin{table}[H]
+\centering
+\caption{NASA Convair 990 1-minute mean}
+\label{tab:convair-mean-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+TIME IN GMT     & time    & \\
+LATITUDE        & lat     & \\
+LONGITUDE       & lon     & \\
+STATIC  PRESSRE & p       & air\_pressure \\
+SD OF PRESSURE  & std\_p  & standard\_deviation\_of\_air\_pressure \\
+RADAR ALTITUDE  & z       & altitude \\
+SD OF RADAR ALT & std\_z  & standard\_deviation\_of\_altitude \\
+AMBIENT TEMP    & ta      & air\_temperature \\
+SD OF TEMP      & std\_ta & standard\_deviation\_of\_air\_temperature \\
+U WIND COMPNT   &  & \\
+SD OF U WIND    &  & \\
+V WIND COMPNT   &  & \\
+SD OF V WIND    &  & \\
+INS TRUE HEADG  &  & \\
+SD OF HEADING &  & \\
+TRUE AIRSPEED &  & \\
+INS PITCH ANGLE &  & \\
+INS ROLL ANGLE &  & \\
+LONG RAD DOWN &  & \\
+  SHORT RAD DOWN &  & \\
+  RG8 FLTR RAD &  & \\
+LONG RAD UP &  & \\
+  SHORT RAD UP &  & \\
+  RG8 FLTR RAD &  & \\
+QUALITY FLAGS &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For writing the NetCDF file we check for respective missing value and
+set those to a \texttt{\_FillValue}. Records with non-valid positions
+are discarded as well records going back in time.
+
+
+
+\subsubsection{NCAR Sabreliner (\texttt{NCAR\_SABRE\_MEANS})}
+
+One minute mean data were computed from 1 second data, quality flags
+from 1 to 7 indicate how many data were used for the mean, 9 indicates
+missing values.
+
+Time is indicated as float/real HHMMSS provided as integer.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/sabre-mean-positions.png}
+    \caption[NCAR Sabreliner flight tracks]{%
+        NASA Convair 990 flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:sabre-mean-positions}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{NCAR Sabreliner 1-minute mean}
+\label{tab:netcdf_names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+TIME IN GMT     & time     & \\
+LATITUDE        & lat      & \\
+LONGITUDE       & lon      & \\
+STATIC  PRESSRE & p        & air\_pressure \\
+SD OF PRESSURE  & std\_p   & standard\_deviation\_of\_air\_pressure \\
+RADAR ALTITUDE  & z        & altitude \\
+SD OF RADAR ALT & std\_z   & standard\_deviation\_of\_altitude\\
+AMBIENT TEMP    & ta       & air\_temperature\\
+SD OF TEMP      & std\_ta  & standard\_deviation\_of\_air\_temperature\\
+DEW POINT TEMP  & dew      & dew\_point\_temperature \\
+SD OF DEW POINT & std\_dew & standard\_deviation\_of\_dew\_point\_temperature \\
+U WIND COMPNT   &  & \\
+SD OF U WIND    &  & \\
+V WIND COMPNT   &  & \\
+SD OF V WIND    &  & \\
+W WIND COMPNT   &  & \\
+SD OF W WIND    &  & \\
+INS TRUE HEADG  &  & \\
+SD OF HEADING   &  & \\
+TRUE AIRSPEED   &  & \\
+INS PITCH ANGL  &  & \\
+INS ROLL ANGLE  &  & \\
+SHORT RAD DOWN  &  & \\
+SHORT RAD UP    &  & \\
+LONG RAD DOWN   &  & \\
+LONG RAD UP     &  & \\
+QUALITY FLAGS   &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For writing the NetCDF file we check for respective missing value and
+set those to a \texttt{\_FillValue}. Records with non-valid positions
+are discarded as well records going back in time.
+
+
+\subsubsection{NOAA DC-6 39 Charlie (\texttt{39\_CHARLIE})}
+
+Files contain 1 second data cycles, quality flags indicating 1 for
+good data, 2 suspect data, and 3 meaning no control.
+
+Time is provided as integer DDDHHMMSS. The table
+\ref{tab:39_charlie_names} only list the physical variable without
+quality flags.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/39-charlie-positions.png}
+    \caption[NOAA DC-6 39 Charlie flight tracks]{%
+        NOAA DC-6 39 Charlie flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:39-charlie-positions}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{NOAA DC-6 39 Charlie 1 second data}
+\label{tab:39_charlie_names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+TIME IN GMT           & time  & \\
+LATITUDE              & lat   & \\
+  LONGITUDE           & lon   & \\
+  PRESSURE            & p     & air\_pressure \\
+  HEADING             &  & \\
+  EAST WIND VE        &  & \\
+  NORTH  WIND VN      &  & \\
+  TWENTY W SAMPLES    &  & \\
+  TWENTY V SAMPLES    &  & \\
+  TWENTY U SAMPLES    &  & \\
+  TWENTY RHOV SAMPLES & rhov  & water\_vapor\_density\\
+  TWENTY T SAMPLES    & ta    & air\_temperature\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For writing the NetCDF file we discarded records going back in time.
+
+If any of the variables in a record is flagged as suspect or no
+control the whole record is written with \texttt{\_FillValue} to the
+NetCDF file. In addition all data with pressure lower than 40 hPa are
+set to \texttt{\_FillValue} as well. From the 20 samples per second
+for air\_temperature and water\_vapor\_density we calculated averages and
+standard deviation which is written to the NetCDF files..
+
+\subsubsection{France DC-7 (\texttt{DC-7\_CEV})}
+
+Files include two data set, one with a 1-second samling and a second
+with 1-minute averages. Strings 1S and 1M have been appended to the
+NetCDF file name accordingly.
+
+ASCII files are distributed over two md4sum directories 579bd3
+d30c25.
+
+Time is provided as an integer HH MM SS, Leading 0s for HH and MM have
+been omitted which makes it a bit challenging to reconstruct the
+time. Furthermore, the time signal is occasionally distored leading to
+backward jumps in time. Those records have been discarded.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/dc7-1m-positions.png}
+    \caption[France DC-7 flight tracks based on 1 minute data]{%
+        France DC-7 flight tracks. Colors represent different
+        altitudes, black: 600-500 hPa, blue: 500-400 hPa, green: 400-300
+        hPa, yellow: 300-200 hPa, and red: above 200 hPa.
+    }
+    \label{fig:dc7-positions}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{France DC-7 1 second and 1 minute data}
+\label{tab:dc7_names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+TIME IN GMT     & time  & \\
+LATITUDE        & lat   & \\
+LONGITUDE       & lon   & \\
+INS TRUE HEADG. &  & \\
+GRND SPEED      &  & \\
+TRUE AIR SPEED  &  & \\
+INS TRACK       &  & \\
+PITCH ANGLE     &  & \\
+ROLL ANGLE      &  & \\
+U WIND COMPNT.  &  & \\
+V WIND COMPNT.  &  & \\
+WIND DIRECTION  &  & \\
+WIND SPEED      &  & \\
+STATIC PRESSURE & p     & air\_pressure \\
+ALTITUDE        & z     & altitude \\
+AMBIENT TEMP.   & ta    & air\_temperature \\
+AMBIENT TEMP.   & ta\_2 & air\_temperature \\
+SHORT RAD DOWN  &  & \\
+SHORT RAD UP    &  & \\
+LONG RAD DOWN   &  & \\
+LONG RAD UP     &  & \\
+SURF TEMPERAT.  & tas   & surface\_temperature \\
+QUALITY FLAGS   &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{UK C-130B (\texttt{UKHERCULES\_XV208} )}
+
+From UK C-130B Hercules a variety of data sets exist, here we focus on
+two subsets), dab4ec (as NetCDF available in
+\texttt{UKHERCULES\_XV208a}) and 96dd74 (as NetCDF available in
+\texttt{UKHERCULES\_XV208b}). Two data sets are included, one with a 1
+minute interval (100F) and a seconbd one with a 1 second interval (1F)
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth, height=6cm, keepaspectratio]{figures/uk-hercules-a-100-positions.png}
+        \caption[UK C-130B flight tracks. Part 1]{%
+            UK C-130B flight tracks based on 1 minute data..
+        }
+        \label{fig: uk-hercules-a}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth, height=6cm, keepaspectratio]{figures/uk-hercules-b-100-positions.png}
+        \caption[UK C-130B flight tracks. Part 2]{%
+            As Fig. \ref{fig: uk-hercules-a} but for the second data set.
+        }
+        \label{fig: uk-hercules-b}
+    \end{minipage}
+    %\captionsetup{labelformat=empty} % removes "Figure 1a", "Figure 1b"
+    %\caption{UK C-130B flight tracks based on 1 minute data].}
+    %\label{fig: uk-hercules}
+  \end{figure}
+
+\begin{table}[H]
+\centering
+\caption{UK C-130B Hercules  1 second and 1 minute data}
+\label{tab:dc7_names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+  RECORDED GMT    & time & \\
+  TRUE HEADING
+  AIRSPEED
+  LATITUDE        & lat  & \\
+  LONGITUDE       & lon  & \\
+  STATIC PRESSURE & p    & air\_pressure \\
+  PRESSURE HEIGHT &  & \\
+  RADAR HEIGHT    & z    & altitude \\
+  D DRIFT DOPP    &  & \\
+  ANGLE ATTACK    &  & \\
+  ANGLE SIDESLIP  &  & \\
+  PITCH ANGLE     &  & \\
+  ROLL ANGLE      &  & \\
+  GROUND SPEED E. &  & \\
+  GROUND SPEED N. &  & \\
+  A/C VERT VEL    &  & \\
+  WIND TO EAST    &  & \\
+  WIND TO NORTH   &  & \\
+  WIND COMP VERT  &  & \\
+  AIR TEMPERATURE & ta    & air\_temperature \\
+  SPECIFIC HUMDTY & q     & specific\_humidity \\
+  AIR TEMPERATURE & ta\_2 & air\_temperature \\
+  DEW/FROST POINT & dew   & dew\_point\_temperature \\
+  RADIATIVE TEMP  &  & \\
+  QUALITY FLAGS   &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Dropsonde Data}
+
+We found two dataset containing dropsonde measurements, one from C130
+data from Lockheed C-130B Hercules
+L-282\footnote{\url{https://www.airhistory.net/photo/20084/N6541C}} (\texttt{C130\_DROPSONDE})
+and the other from C135 data from Air Force Boeing
+OC-135B\footnote{\url{https://www.airhistory.net/photo/763834/61-2674/12674}}(\texttt{C135\_DROPSONDE})
+
+Time is provided as integer HHMMSS.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth, height=6cm, keepaspectratio]{figures/dc7-1m-positions.png}
+    \caption[Dropsonde launch positions]{%
+        Dropsonde launch positions.
+    }
+    \label{fig:dropsonde-positions}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{C-130B Dropsonde Data}
+\label{tab:c130-dropsonde-names}
+\begin{tabular}{lll}
+\toprule
+\textbf{Name in ASCII File} & \textbf{NetCDF Variable Name} & \textbf{Standard Name}\\
+\midrule
+ TIME        & time     & \\
+ PRESSURE    & p        & air\_pressure\\
+ HEIGHT      & altitude & geopotential\_height\\
+ DEW POINT   & dew      & dew\_point\_temperature \\
+ TEMPERATURE & ta       & temperature\\
+ RLT.HUM.    & rh       & relative\_humidity \\
+ SPC.HUM.    & q        & specific\_humidity \\
+ DIRECTION   & wdir     & wind \_from\_direction \\
+ SPEED       & wspd     & wind\_speed \\
+ U-COMP      & u        & eastward\_wind \\
+ V-COMP      & v        & northward\_wind \\
+ LATITUDE    & lat      & \\
+ LONGITUDE   & lon      & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Missing values set in the ASCII files are evaluated and corresponding
+data set to \texttt{\_FillValue}. Data are furthermore checked and all
+individual data carrying values outside of a plausible data range are
+set to \texttt{\_FillValue} as well.
+
+\section{A Note on the c++ implementation}
+
+In Fortran, reading the 24×80 character records is straightforward when
+using the provided format string in conjunction with a properly
+defined derived type.
+
+Taking the example for converting the Meteor buoy data (see
+\texttt{GATEbuoy\_meteor.f90} and \texttt{GATEbuoy\_meteor.cpp}) the
+respective Fortran code sections look like
+
+\begin{verbatim}
+  type :: GATE_buoy_type
+     ! do not change the sequence within this type
+     real :: TIME
+     real :: DAY
+     real :: WIND_SPEED
+     real :: VAL_WIND_SPEED
+     real :: WIND_DIRECTION
+     real :: VAL_WIND_DIRECTION
+     real :: DRY_BULB_TEMP
+     real :: VAL_DRY_BULB_TEMP
+     real :: SPEC_HUMIDITY
+     real :: VAL_SPEC_HUMIDITY
+     real :: WATER_TEMPERATURE
+     real :: VAL_WATER_TEMPERATURE
+  end type GATE_buoy_type
+
+  integer :: type_id          ! file header record type indicator
+  integer :: records_in_line  ! number of of records contained in one full data line
+  integer :: records_handled  ! number of records allready stored away
+  integer :: line_number      ! of one line containing full format string
+
+  integer, parameter :: no_of_records_in_line = 25
+
+  type (GATE_buoy_type) :: buoydata(no_of_records_in_line)
+
+  character(len=24*80) :: line
+
+  110 format(I1,I4,I10,I5,25(F10.2,F5.0,F7.1,F4.0,F7.0,F4.0,F9.2,F4.0, &
+             F9.2,F4.0,F9.2,F4.0))
+
+  read(line, 110, iostat=ierror ) &
+        type_id, records_in_line, records_handled, line_number, buoydata
+\end{verbatim}
+
+The structure of the data where a specific
+format is repeated multiple times can be efficiently captured by
+declaring arrays with appropriate dimensions.
+For example, the variable \texttt{radiosondedata} is declared as an
+array of 25 elements to reflect that the format
+\begin{verbatim}
+(F10.2,F5.0,F7.1,F4.0,F7.0,F4.0,F9.2,F4.0,F9.2,F4.0,F9.2,F4.0)
+\end{verbatim}
+is repeated 25 times. This principle, using array dimensions to match
+repeated format patterns, is general and applies to all GATE ASCII
+files.
+
+The c++ equivalent of a Fortran derived type is a c struct. It is not
+possible to implictly or even explicitly loop over the members of a
+struct. Thus the single line in Fortran has to be expanded manually
+into a squence where we read the 24x80 character string variable by
+variable and updating the pointer to the string after each read.
+
+\begin{verbatim}
+  constexpr int BUOY_DATA_IN_LINE = 25;
+
+  std::vector<GATE_buoy_type> buoydata(BUOY_DATA_IN_LINE);
+
+  std::sscanf(record_lines.c_str(), "%1d %4d %10d %5d",
+              &type_id,
+              &records_in_line,
+              &records_handled,
+              &line_number);
+
+  const char *ptr = record_lines.c_str() + 20;
+
+  const char* const format = "%10f %5f %7f %4f %7f %4f %9f %4f %9f %4f %9f %4f";
+
+  for (int i = 0; i < BUOY_DATA_IN_LINE; i++) {
+    std::sscanf(ptr,
+                format,
+                &buoydata[i].time,
+                &buoydata[i].day,
+                &buoydata[i].wind_speed,
+                &buoydata[i].val_wind_speed,
+                &buoydata[i].wind_direction,
+                &buoydata[i].val_wind_direction,
+                &buoydata[i].dry_bulb_temp,
+                &buoydata[i].val_dry_bulb_temp,
+                &buoydata[i].spec_humidity,
+                &buoydata[i].val_spec_humidity,
+                &buoydata[i].water_temperature,
+                &buoydata[i].val_water_temperature);
+
+    ptr += RECORD_WIDTH; //10+5+7+4+7+4+9+4+9+4+9+4
+  }
+\end{verbatim}
+
+It may become necessary in c++ to write the loop even more explicitly
+when the Format string is not as homogenous as in the Meteor buoy case
+or if numbers are not seperated by blanks anymore as in the latter
+case the sscanf will fail. The alternative for loop would look like
+
+\begin{verbatim}
+  for (int i = 0; i < BUOY_DATA_IN_LINE; i++)
+    {
+      std::sscanf(ptr, "%10f", &buoydata[i].time);
+      ptr += 10;
+
+      std::sscanf(ptr, "%5f", buoydata[i].day);
+      ptr += 5;
+
+      std::sscanf(ptr, "%7f", buoydata[i].wind_speed);
+      ptr += 7;
+
+      ...
+    }
+\end{verbatim}
+
+See \texttt{GATEbuoy\_hydro.cpp} for a more advanced example.
+
+\end{document}
