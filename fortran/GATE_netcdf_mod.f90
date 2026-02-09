@@ -59,19 +59,16 @@ module gate_netcdf_mod
       character(len=*), intent(in) :: units
       real, optional, intent(in)   :: fill_value
       integer :: var_id
-      ! integer :: status
 
       ! Define variable
-      status = nf_def_var(ncid, trim(var_name), nf_float, size(dimids), dimids, var_id)
-      call handle_err(status)
+      call handle_err(nf_def_var(ncid, trim(var_name), nf_float, size(dimids), dimids, var_id))
 
       ! Set attributes
       call set_attributes(ncid, var_id, std_name, long_name, units)
 
       ! Set _FillValue if provided
       if (present(fill_value)) then
-        status = nf_put_att_real(ncid, var_id, '_FillValue', 1, fill_value)
-        call handle_err(status)
+        call handle_err(nf_put_att_real(ncid, var_id, "_FillValue", NF_REAL, 1, fill_value))
       end if
 
     end function define_variable_and_attribute_real
@@ -91,17 +88,14 @@ module gate_netcdf_mod
       integer :: var_id
 
       ! Define variable
-      status = nf_def_var(ncid, trim(var_name), nf_double, size(dimids), dimids, var_id)
-      call handle_err(status)
+      call handle_err(nf_def_var(ncid, trim(var_name), nf_double, size(dimids), dimids, var_id))
 
       ! Set attributes
       call set_attributes(ncid, var_id, std_name, long_name, units)
-      status = nf_put_att_text(ncid, var_id, 'standard_name', len_trim(std_name), trim(std_name))
 
       ! Set _FillValue if provided
       if (present(fill_value)) then
-        status = nf_put_att_double(ncid, var_id, '_FillValue', 1, fill_value)
-        call handle_err(status)
+        call handle_err(nf_put_att_double(ncid, var_id, "_FillValue", NF_DOUBLE, 1, fill_value))
       end if
 
     end function define_variable_and_attribute_double
@@ -121,17 +115,14 @@ module gate_netcdf_mod
       integer :: var_id
 
       ! Define variable
-      status = nf_def_var(ncid, trim(var_name), nf_int, size(dimids), dimids, var_id)
-      call handle_err(status)
+      call handle_err(nf_def_var(ncid, trim(var_name), nf_int, size(dimids), dimids, var_id))
 
       ! Set attributes
       call set_attributes(ncid, var_id, std_name, long_name, units)
-      status = nf_put_att_text(ncid, var_id, 'standard_name', len_trim(std_name), trim(std_name))
 
       ! Set _FillValue if provided
       if (present(fill_value)) then
-        status = nf_put_att_int(ncid, var_id, '_FillValue', 1, fill_value)
-        call handle_err(status)
+        call handle_err(nf_put_att_int(ncid, var_id, "_FillValue", NF_INT, 1, fill_value))
       end if
 
     end function define_variable_and_attribute_int

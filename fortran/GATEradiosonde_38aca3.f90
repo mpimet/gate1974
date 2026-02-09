@@ -369,7 +369,7 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
 
   call handle_err(nf_put_att_text(ncid, launch_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, flight_time_id, 'units', len(seconds_since), seconds_since))
-
+  
   p_id = define_variable_and_attribute_real( &
        ncid, dimids, 'p', 'air_pressure', 'air pressure', metadata%p_units, 999999.0)
 
@@ -377,7 +377,6 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
        'geopotential height', metadata%alt_units, 99999.0)
   call handle_err(nf_put_att_text(ncid, alt_id, "positive", 2, "up"))
 
-  
   t_id = define_variable_and_attribute_real( &
        ncid, dimids, 'ta', 'temperature', 'temperature', metadata%t_units, 9999.0)
 
