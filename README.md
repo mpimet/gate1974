@@ -2,7 +2,26 @@
 
 # GATE Data Processing Pipeline
 
-René Redler, MPI Meteorology Hamburg
+*René Redler, Max Planck Institute for Meteorology, Hamburg*
+
+**Last updated: 9 February 2026**
+
+---
+
+Please see the doc directory for further information. 
+
+Without any guaratee for completeness, GATE_tape_contents.pdf provides a summary of the ASCII file contents and may be of help for identifying further data of interest. 
+
+GATEdataconversion.tex can easily be converted to a pdf document using pdflatex. This documents describes the data processing in some more details with a focus on those data that have been converted.
+
+- [Aircraft data](./fortran/GATEaircraft.md)
+- [Buoy data](./fortran/GATEbuoy.md)
+- [Dropsonde data](./fortran/GATEdropsonde.md)
+- [Radiosondedata](./fortran/GATEradiosonde.md)
+- [Buoy data](./fortran/GATEbuoy.md)
+- Ship data
+
+---
 
 ## 1.) Handling of Initial Tar Files
 
@@ -76,7 +95,7 @@ GATEsort.sh /\<path to\>/DATA/GATE/3.64.02.101-3.69.02.104\_19740601-19740930
 | - | - |
 | `GATEbuoy\_meteor.cpp` | Reads and writes GATE Meteor buoy data |
 | `GATEbuoy\_hydro.cpp` | Reads and writes GATE UK Hydrographic ship buoy data |
-| GATEandCOMM\_SHIPS.cpp | GATE\_AND\_COMM\_SHIP SST gridded data |
+| `GATEandCOMM\_SHIPS.cpp` | GATE\_AND\_COMM\_SHIP SST gridded data |
 
 
 ### Compilation Instructions for Fortran
