@@ -27,28 +27,16 @@ process_platform() {
   local ship=$1
   in_path="${inbasedir}/${radiosonde_dirs[$ship]}"
   hash=$(basename ${radiosonde_dirs[$ship]})
-  # Special case for BIDASSOA
-  if [ "$ship" = "BIDASSOA" ]; then
-    out_path="${outbasedir}/${radiosonde_dirs[$ship]}"
-    [ ! -d "$out_path" ] && mkdir -p "$out_path"
-    cd ${out_path}
-    cp ${in_path}/* .
-    for infile in `ls -1`; do
-      ${thisdir}/GATEradiosonde_38aca3.x $infile
-      mv ${infile}.nc ../.
-    done
-    [ "$keepFiles" = false ] && rm -r ${out_path}
-  else
-    out_path="${outbasedir}/${radiosonde_dirs[$ship]}"
-    [ ! -d "$out_path" ] && mkdir -p "$out_path"
-    cd ${out_path}
-    cp ${in_path}/* .
-    for infile in `ls -1`; do
-      ${thisdir}/GATEradiosonde_${hash}.x $infile
-      mv ${infile}.nc ../.
-    done
-    [ "$keepFiles" = false ] && rm -r ${out_path}
-  fi
+ 
+  out_path="${outbasedir}/${radiosonde_dirs[$ship]}"
+  [ ! -d "$out_path" ] && mkdir -p "$out_path"
+  cd ${out_path}
+  cp ${in_path}/* .
+  for infile in `ls -1`; do
+    ${thisdir}/GATEradiosonde_38aca3.x $infile
+    mv ${infile}.nc ../.
+  done
+  [ "$keepFiles" = false ] && rm -r ${out_path}
 }
 
 # Function to print help message

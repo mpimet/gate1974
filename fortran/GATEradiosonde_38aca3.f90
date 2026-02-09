@@ -48,24 +48,9 @@ end module GATEradiosonde_mod
 
 program GATEradiosonde
 
-  ! Reading files from tapes B79315 and B79316
-  ! replacing tape B79314
-  !
-  ! Tape header reconds type "0" in
-  ! 3.32.02.101_-_3.32.03.102_R_1-2,1-3_19740601-19740930-002:
-  !01234567890=:> /STUVWXYZ,(-JKLMNOPQR*};+ABCDEFGHI.){<ÿ
-  ! and
-  ! 3.32.02.101_-_3.32.03.102_R_1-2,1-3_19740601-19740930-740:
-  !01234567890=:> /STUVWXYZ,(-JKLMNOPQR*};+ABCDEFGHI.){<ÿ
-  ! to compare against
-  !01234567890=:> /STUVWXYZ.(-JKLMNOPQR*};+ABCDEFGHI.){<ÿ
-  ! both writen with IBM 360/65
-
-  ! 3.32.02.101_-_3.32.03.102_R_1-2,1-3_19740601-19740930-1554
-  !01234567890#   /STUVWXYZ,%-JKLMNOPQR*  &ABCDEFGHI.<  ! 
-  ! written with CDC 7314
   ! ASCII input
-  ! /work/mh0010/GATE/NOAA_data/Sorted_files/3.31.02.101-3.33.02.101_19740601-19740930 
+  ! 3.31.02.101-3.33.02.101_19740601-19740930
+  ! 3.00.02.104-3.31.02.101_19740601-19740930 for METEOR
 
   use, intrinsic :: iso_fortran_env, only : iostat_end
 
@@ -295,11 +280,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
 
   use GATEradiosonde_mod
-  use GATE_utils_mod
+  use GATE_netcdf_mod
 
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                     intent(in) :: no_of_levels
@@ -382,62 +365,42 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   edge(2)  = 1
 
   call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), launch_time_id))
-
   call handle_err(nf_def_var(ncid, "flight_time", NF_FLOAT, ndims, dimids, flight_time_id))
-  call handle_err(nf_def_var(ncid, 'p',           NF_FLOAT, ndims, dimids, p_id))
-  call handle_err(nf_def_var(ncid, 'altitude',    NF_FLOAT, ndims, dimids, alt_id))
-  call handle_err(nf_def_var(ncid, "ta",          NF_FLOAT, ndims, dimids, t_id))
-  call handle_err(nf_def_var(ncid, "ta_err",      NF_FLOAT, ndims, dimids, terr_id))
-  call handle_err(nf_def_var(ncid, "q",           NF_FLOAT, ndims, dimids, sh_id))
-  call handle_err(nf_def_var(ncid, "q_err",       NF_FLOAT, ndims, dimids, sherr_id))
-  call handle_err(nf_def_var(ncid, 'u',           NF_FLOAT, ndims, dimids, u_id))
-  call handle_err(nf_def_var(ncid, "u_err",       NF_FLOAT, ndims, dimids, uerr_id))
-  call handle_err(nf_def_var(ncid, 'v',           NF_FLOAT, ndims, dimids, v_id))
-  call handle_err(nf_def_var(ncid, "v_err",       NF_FLOAT, ndims, dimids, verr_id))
 
   call handle_err(nf_put_att_text(ncid, launch_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, flight_time_id, 'units', len(seconds_since), seconds_since))
 
-  call handle_err(nf_put_att_text(ncid, p_id, "standard_name", 12, "air_pressure"))
-  call handle_err(nf_put_att_text(ncid, p_id, "units", len(metadata%p_units), metadata%p_units))
-  call handle_err(nf_put_att_real(ncid, p_id, "_FillValue", NF_REAL, 1, 999999.0))
+  p_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'p', 'air_pressure', 'air pressure', metadata%p_units, 999999.0)
 
-  call handle_err(nf_put_att_text(ncid, alt_id, "standard_name", 19, "geopotential_height"))
+  alt_id = define_variable_and_attribute_real(ncid, dimids, 'altitude', 'geopotential_height', &
+       'geopotential height', metadata%alt_units, 99999.0)
   call handle_err(nf_put_att_text(ncid, alt_id, "positive", 2, "up"))
-  call handle_err(nf_put_att_text(ncid, alt_id, "units", len(metadata%alt_units), metadata%alt_units))
-  call handle_err(nf_put_att_real(ncid, alt_id, "_FillValue", NF_REAL, 1, 99999.0))
 
-  call handle_err(nf_put_att_text(ncid, t_id, "standard_name", 11, "temperature"))
-  call handle_err(nf_put_att_text(ncid, t_id, "units", len(metadata%t_units), metadata%t_units))
-  call handle_err(nf_put_att_real(ncid, t_id, "_FillValue", NF_REAL, 1, 9999.0))
+  
+  t_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'ta', 'temperature', 'temperature', metadata%t_units, 9999.0)
 
-  call handle_err(nf_put_att_text(ncid, terr_id, "standard_name", 17, "temperature_error"))
-  call handle_err(nf_put_att_text(ncid, terr_id, "units", len(metadata%t_units), metadata%t_units))
-  call handle_err(nf_put_att_real(ncid, terr_id, "_FillValue", NF_REAL, 1, 9.9))
+  terr_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'ta_err', 'temperature_error', 'temperature error', metadata%t_units, 9.9 )
+  
+  sh_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%sh_units,  99.0)
 
-  call handle_err(nf_put_att_text(ncid, sh_id, "standard_name", 17, "specific_humidity"))
-  call handle_err(nf_put_att_text(ncid, sh_id, "units", len(metadata%sh_units), metadata%sh_units))
-  call handle_err(nf_put_att_real(ncid, sh_id, "_FillValue", NF_REAL, 1, 99.0))
+  sherr_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q_err', 'specific_humidity_error', 'specific humidity error', metadata%sh_units,  99.99)
 
-  call handle_err(nf_put_att_text(ncid, sherr_id, "standard_name", 23, "specific_humidity_error"))
-  call handle_err(nf_put_att_text(ncid, sherr_id, "units", len(metadata%sh_units), metadata%sh_units))
-  call handle_err(nf_put_att(ncid, sherr_id, "_FillValue", NF_REAL, 1, 99.99))
+  u_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'u', 'eastward_wind', 'eastward wind', metadata%wind_units, 999.9 )
 
-  call handle_err(nf_put_att_text(ncid, u_id, "standard_name", 13, "eastward_wind"))
-  call handle_err(nf_put_att_text(ncid, u_id, "units", len(metadata%wind_units), metadata%wind_units))
-  call handle_err(nf_put_att_real(ncid, u_id, "_FillValue", NF_REAL, 1, 999.9))
+  uerr_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'u_err', 'eastward_wind',  'eastward wind error', metadata%wind_units, 99.9 )
 
-  call handle_err(nf_put_att_text(ncid, uerr_id, "standard_name", 19, "eastward_wind_error"))
-  call handle_err(nf_put_att_text(ncid, uerr_id, "units", len(metadata%wind_units), metadata%wind_units))
-  call handle_err(nf_put_att_real(ncid, uerr_id, "_FillValue", NF_REAL, 1, 99.9))
+  v_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'v', 'northward_wind', 'northward wind', metadata%wind_units, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, v_id, "standard_name", 14, "northward_wind"))
-  call handle_err(nf_put_att_text(ncid, v_id, "units", len(metadata%wind_units), metadata%wind_units))
-  call handle_err(nf_put_att_real(ncid, v_id, "_FillValue", NF_REAL, 1, 999.9))
-
-  call handle_err(nf_put_att_text(ncid, verr_id, "standard_name", 20, "northward_wind_error"))
-  call handle_err(nf_put_att_text(ncid, verr_id, "units", len(metadata%wind_units), metadata%wind_units))
-  call handle_err(nf_put_att_real(ncid, verr_id, "_FillValue", NF_REAL, 1, 99.9))
+  verr_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'v_err', 'northward_wind_error', 'northward wind error', metadata%wind_units, 99.9)
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
        trim(adjustl(metadata%platform))))
