@@ -2,7 +2,7 @@
 
 module GATEdship_mod
 
-  use GATE_metadata_mod, only : datetime, position
+  use GATE_metadata_mod
 
   real, parameter :: lon_min = -106.0
   real, parameter :: lon_max = 62.0
@@ -19,18 +19,7 @@ module GATEdship_mod
      integer :: SST
   end type GATE_dship_type
 
-  type :: GATE_metadata_type
-
-     character(len=32) :: shipname
-     type (datetime)   :: measurement_time
-     real              :: interval
-     character         :: interval_unit
-
-     character(len=6)  :: temperature_unit='kelvin'
-
-  end type GATE_metadata_type
-
-  public :: GATE_dship_type, GATE_metadate_type
+  public :: GATE_dship_type
 
 end module GATEdship_mod
 
@@ -160,17 +149,17 @@ subroutine convert_data (infile)
         metadata%interval_unit = "D"
      
         if ( i == 4 ) then
-           read(line(2:15),'(i4,5i2)')                  &
-              metadata%measurement_time%year,   &
-              metadata%measurement_time%month,  &
-              metadata%measurement_time%day,    &
-              metadata%measurement_time%hour,   &
-              metadata%measurement_time%minute, &
-              metadata%measurement_time%second
+           read(line(2:15),'(i4,5i2)') &
+              metadata%time%year,      &
+              metadata%time%month,     &
+              metadata%time%day,       &
+              metadata%time%hour,      &
+              metadata%time%minute,    &
+              metadata%time%second
 
-           metadata%measurement_time%hour = 12
-           metadata%measurement_time%minute = 0
-           metadata%measurement_time%second = 0
+           metadata%time%hour = 12
+           metadata%time%minute = 0
+           metadata%time%second = 0
 
         end if
 
@@ -264,11 +253,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
 
   use GATEdship_mod
-  use GATE_utils_mod
+  use GATE_netcdf_mod
 
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                        intent(in) :: no_of_measurements
@@ -302,7 +289,8 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
   integer :: lat_dimid, lon_dimid, time_dimid
   integer :: sst_id
 
-  integer :: dimids(3)
+  integer :: dim1dids(1)
+  integer :: dim3dids(3)
 
   character(len=33) :: seconds_since
 
@@ -319,13 +307,13 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
                       "from GATE_AND_COMM_SHIPS mapped sst data in archive directory 3.00.02.104-3.31.02.101_19740601-19740930"
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
-       & 'seconds since ',                        &
-       & metadata%measurement_time%year,   '-',  &
-       & metadata%measurement_time%month,  '-',  &
-       & metadata%measurement_time%day,    ' ',  &
-       & metadata%measurement_time%hour,   ':',  &
-       & metadata%measurement_time%minute, ':',  &
-       & metadata%measurement_time%second
+       & 'seconds since ',           &
+       & metadata%time%year,   '-',  &
+       & metadata%time%month,  '-',  &
+       & metadata%time%day,    ' ',  &
+       & metadata%time%hour,   ':',  &
+       & metadata%time%minute, ':',  &
+       & metadata%time%second
 
   ! start writing
 
@@ -347,31 +335,26 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
   endif
 
   call handle_err(nf_def_dim(ncid, 'lon', nlon, lon_dimid))
-  call handle_err(nf_def_var(ncid, 'lon', NF_FLOAT, 1, (/lon_dimid/), lon_id))
-  call handle_err(nf_put_att(ncid, lon_id, 'units', NF_CHAR, 12, 'degrees_east'))
-  call handle_err(nf_put_att(ncid, lon_id, 'long_name', NF_CHAR, 9, 'longitude'))
-  call handle_err(nf_put_att(ncid, lon_id, 'standard_name', NF_CHAR, 9, 'longitude'))
-
   call handle_err(nf_def_dim(ncid, 'lat', nlat, lat_dimid))
-  call handle_err(nf_def_var(ncid, 'lat', NF_FLOAT, 1, (/lat_dimid/), lat_id))
-  call handle_err(nf_put_att(ncid, lat_id, 'units', NF_CHAR, 13, 'degrees_north'))
-  call handle_err(nf_put_att(ncid, lat_id, 'long_name', NF_CHAR, 8, 'latitude'))
-  call handle_err(nf_put_att(ncid, lat_id, 'standard_name', NF_CHAR, 8, 'latitude'))
-
   call handle_err(nf_def_dim(ncid, 'time', 1, time_dimid))
+
+  dim1dids(1) = lon_dimid
+  lon_id = define_variable_and_attribute_real( &
+    ncid, dim1dids, 'lon', 'longitude', 'longitude', 'degrees_east')
+
+  dim1dids(1) = lat_dimid
+  lat_id = define_variable_and_attribute_real( &
+    ncid, dim1dids, 'lat', 'latitude', 'latitude', 'degrees_north')
+
   call handle_err(nf_def_var(ncid, "time", NF_REAL, 1, (/ time_dimid /), time_id))
   call handle_err(nf_put_att(ncid, time_id, "units", NF_CHAR, len(seconds_since), seconds_since))
 
-  dimids(1) = lon_dimid
-  dimids(2) = lat_dimid
-  dimids(3) = time_dimid
+  dim3dids(1) = lon_dimid
+  dim3dids(2) = lat_dimid
+  dim3dids(3) = time_dimid
 
-  call handle_err(nf_def_var(ncid, "sst", NF_FLOAT, 3, dimids, sst_id))
-
-  call handle_err(nf_put_att_text(ncid, sst_id, "standard_name", 24, "sea_surface_temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "long_name", 24, "sea surface temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, sst_id, "_FillValue", NF_REAL, 1, fill_value))
+  sst_id = define_variable_and_attribute_real( &
+     ncid, dim3dids, 'sst', 'sea_surface_temperature', 'sea surface temperature', metadata%temperature_unit, fill_value)
 
   call handle_err(nf_put_att_text(ncid, time_dimid, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, time_dimid, "calendar", 19, "proleptic_gregorian"))

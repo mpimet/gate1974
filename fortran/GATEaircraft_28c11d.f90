@@ -207,22 +207,22 @@ subroutine convert_data (infile)
 
         if ( i == 4 ) then
            read(line(2:15),'(i4,5i2)')                  &
-                metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute, &
-                metadata%measurement_time_start%second
-           startTime = metadata%measurement_time_start%hour   * 3600 +  &
-                       metadata%measurement_time_start%minute *   60 +  &
-                       metadata%measurement_time_start%second
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute, &
+                metadata%time_start%second
+           startTime = metadata%time_start%hour   * 3600 +  &
+                       metadata%time_start%minute *   60 +  &
+                       metadata%time_start%second
            write ( * , * ) "start date/time is ", &
-                metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute, &
-                metadata%measurement_time_start%second
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute, &
+                metadata%time_start%second
 
         end if
 
@@ -412,11 +412,11 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
  
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                             &
-       & metadata%measurement_time_start%year,   '-',  &
-       & metadata%measurement_time_start%month,  '-',  &
-       & metadata%measurement_time_start%day,    ' ',  &
-       & 0,                                      ':',  & 
-       & 0,                                      ':',  &
+       & metadata%time_start%year,   '-',  &
+       & metadata%time_start%month,  '-',  &
+       & metadata%time_start%day,    ' ',  &
+       & 0,                          ':',  & 
+       & 0,                          ':',  &
        & 0
 
   ! start writing

@@ -83,9 +83,9 @@ public :: charlie_time_converter, &
       logical       :: flip
 
       if ( hh == 0 .and. mm == 0 .and. ss == 0) then
-         hh = metadata%measurement_time_start%hour
-         mm = metadata%measurement_time_start%minute
-         ss = metadata%measurement_time_start%second
+         hh = metadata%time_start%hour
+         mm = metadata%time_start%minute
+         ss = metadata%time_start%second
       endif
 
       write ( str, '(I6)') n

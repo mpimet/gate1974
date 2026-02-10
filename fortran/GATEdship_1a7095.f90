@@ -1,7 +1,7 @@
 #define FILENAME_LENGHT 132
 module GATEdship_mod
 
-  use GATE_metadata_mod, only : datetime, position
+  use GATE_metadata_mod
 
   integer, parameter :: no_of_records_in_line = 23 ! see format string 110
 
@@ -25,21 +25,7 @@ module GATEdship_mod
      real :: RAIN_AMOUNT
   end type GATE_dship_type
 
-  type :: GATE_metadata_type
-
-     character(len=32) :: shipname
-     type (datetime)   :: measurement_time_start
-     integer           :: interval
-     character         :: interval_unit
-
-     character(len=2)  :: pressure_unit='Pa'
-     character(len=6)  :: temperature_unit='kelvin'
-     character(len=2)  :: rain_unit='mm'
-     character(len=3)  :: wind_unit='m/s' 
-
-  end type GATE_metadata_type
-
-  public :: GATE_dship_type, GATE_metadate_type
+  public :: GATE_dship_type
 
   contains
 
@@ -268,7 +254,7 @@ subroutine convert_data (infile)
      case ( 0 )
 
         if ( i == 2 ) then
-           metadata%shipname = line(16:39)
+           metadata%shipname1 = line(16:39)
         end if
 
         if ( i == 7 ) then
@@ -279,21 +265,21 @@ subroutine convert_data (infile)
 
         if ( i == 4 ) then
            read(line(2:15),'(i4,5i2)')                  &
-                metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute, &
-                metadata%measurement_time_start%second
-           startTime = metadata%measurement_time_start%hour   * 3600 +  &
-                       metadata%measurement_time_start%minute *   60 +  &
-                       metadata%measurement_time_start%second
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute, &
+                metadata%time_start%second
+           startTime = metadata%time_start%hour   * 3600 +  &
+                       metadata%time_start%minute *   60 +  &
+                       metadata%time_start%second
 
-           write ( * , * ) "Start of measurement ", metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute
+           write ( * , * ) "Start of measurement ", metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute
         end if
 
      case ( iostat_end )
@@ -368,10 +354,9 @@ subroutine convert_data (infile)
             ! convert time signal
             call date_converter(shipdata(i)%date, year, month, day)
             call time_converter(shipdata(i)%time, hour, minute, second)
-
-            days = days_between( metadata%measurement_time_start%year,   &
-                                 metadata%measurement_time_start%month,  &
-                                 metadata%measurement_time_start%day, year, month, day)
+            days = days_between( metadata%time_start%year,   &
+                                 metadata%time_start%month,  &
+                                 metadata%time_start%day, year, month, day)
 
             shipTime(i) = days * 86400 + hour*3600 + minute*60 + second
 
@@ -409,11 +394,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
 
   use GATEdship_mod
-  use GATE_utils_mod
+  use GATE_netcdf_mod
 
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                        intent(in) :: no_of_measurements
@@ -453,19 +436,19 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
   call date_and_time(clockdate, clocktime, timezone, values)
 
   write (history, "(A,I4,A1,I0.2,A1,I0.2,A1,3(I0.2,A1),A)" ) &
-                      "Created by Rene Redler, MPI-M on ",   &
-                      values(1), "-", values(2), "-", values(3), " ", &
-                      values(5), ":", values(6), ":", values(7), " ", &
-                      "from data in archive directory 3.00.02.104-3.31.02.101_19740601-19740930."
+                  "Created by Rene Redler, MPI-M on ",   &
+                  values(1), "-", values(2), "-", values(3), " ", &
+                  values(5), ":", values(6), ":", values(7), " ", &
+                  "from data in archive directory 3.00.02.104-3.31.02.101_19740601-19740930."
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                        &
-       & metadata%measurement_time_start%year,   '-',  &
-       & metadata%measurement_time_start%month,  '-',  &
-       & metadata%measurement_time_start%day,    ' ',  &
-       & metadata%measurement_time_start%hour,   ':',  &
-       & metadata%measurement_time_start%minute, ':',  &
-       & metadata%measurement_time_start%second
+       & metadata%time_start%year,   '-',  &
+       & metadata%time_start%month,  '-',  &
+       & metadata%time_start%day,    ' ',  &
+       & metadata%time_start%hour,   ':',  &
+       & metadata%time_start%minute, ':',  &
+       & metadata%time_start%second
 
   ! start writing
 
@@ -485,44 +468,32 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
   edge(1)  = 1
 
   call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
-
-  call handle_err(nf_def_var(ncid, "lat", NF_FLOAT, ndims, dimids, lat_id))
-  call handle_err(nf_def_var(ncid, "lon", NF_FLOAT, ndims, dimids, lon_id))
-  call handle_err(nf_def_var(ncid, "ta",  NF_FLOAT, ndims, dimids, ta_id))
-  call handle_err(nf_def_var(ncid, "p",   NF_FLOAT, ndims, dimids, p_id))
-  call handle_err(nf_def_var(ncid, "sst", NF_FLOAT, ndims, dimids, sst_id))
-
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
-  call handle_err(nf_put_att_text(ncid, lat_id, "standard_name", 8, "latitude"))
-  call handle_err(nf_put_att_text(ncid, lat_id, "units", 13, "degrees_north"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "standard_name", 9, "longitude"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "units", 12, "degrees_east"))
-  
-  call handle_err(nf_put_att_text(ncid, ta_id, "standard_name", 15, "air_temperature"))
-  call handle_err(nf_put_att_text(ncid, ta_id, "long_name", 15, "air temperature"))
-  call handle_err(nf_put_att_text(ncid, ta_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, ta_id, "_FillValue", NF_REAL, 1, 999.9))
+  lat_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lat', 'latitude', 'latitude', 'degrees_north')
 
-  call handle_err(nf_put_att_text(ncid, p_id, "standard_name", 12, "air_pressure"))
-  call handle_err(nf_put_att_text(ncid, p_id, "long_name", 12, "air pressure"))
-  call handle_err(nf_put_att_text(ncid, p_id, "units", len(metadata%pressure_unit), metadata%pressure_unit))
-  call handle_err(nf_put_att_real(ncid, p_id, "_FillValue", NF_REAL, 1, 99999.9))
+  lon_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lon', 'longitude', 'longitude', 'degrees_east')
 
-  call handle_err(nf_put_att_text(ncid, sst_id, "standard_name", 23, "sea_surface_temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "long_name", 23, "sea surface temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, sst_id, "_FillValue", NF_REAL, 1, 999.9))
+  ta_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'ta', 'temperature', 'temperature', metadata%temperature_unit, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "shipname", len(trim(adjustl(metadata%shipname))), &
-       trim(adjustl(metadata%shipname))))
+  p_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'p', 'air_pressure', 'air pressure', metadata%pressure_unit, 99999.9)
+
+  sst_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'sst', 'sea_surface_temperature', 'sea surface temperature', metadata%temperature_unit, 999.9)
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "shipname", len(trim(adjustl(metadata%shipname1))), &
+       trim(adjustl(metadata%shipname1))))
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
 
   call handle_err(nf_enddef (ncid))
 
-  write ( * , * ) " - ", trim(adjustl(metadata%shipname)), ', sample interval ', metadata%interval
+  write ( * , * ) " - ", trim(adjustl(metadata%shipname1)), ', sample interval ', metadata%interval
 
   do i = 1, no_of_measurements
      if ( dshipdata(i)%water_temp > 0.0 .and. dshipdata(i)%water_temp < 50.0 ) then

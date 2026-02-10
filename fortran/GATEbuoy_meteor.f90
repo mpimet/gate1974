@@ -1,7 +1,7 @@
 #define FILENAME_LENGHT 132
 module GATEbuoy_mod
 
-  use GATE_metadata_mod, only : datetime, position
+  use GATE_metadata_mod
 
   integer, parameter :: no_of_records_in_line = 25 ! see format string 110
 
@@ -21,27 +21,7 @@ module GATEbuoy_mod
      real :: VAL_WATER_TEMPERATURE
   end type GATE_buoy_type
 
-  type :: GATE_metadata_type
-
-     character(len=32) :: shipname1
-     character(len=32) :: shipname2
-     type (datetime)   :: measurement_time_start
-     type (datetime)   :: measurement_time_end
-     integer           :: interval
-     character         :: interval_unit
-     type (position)   :: buoy_lat_start
-     type (position)   :: buoy_lon_start
-     type (position)   :: buoy_lat_end
-     type (position)   :: buoy_lon_end
-
-     character(len=6)  :: temperature_unit='kelvin'
-     character(len=5)  :: humidity_unit='kg/kg'
-     character(len=3)  :: wind_unit='m/s' 
-     character(len=3)  :: wind_dir_unit='deg' 
-
-  end type GATE_metadata_type
-
-  public :: GATE_buoy_type, GATE_metadate_type
+  public :: GATE_buoy_type
 
   contains
 
@@ -295,55 +275,55 @@ subroutine convert_data (infile)
 
         if ( i == 4 ) then
            read(line(2:15),'(i4,5i2)')                  &
-                metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute, &
-                metadata%measurement_time_start%second
-           startTime = metadata%measurement_time_start%hour   * 3600 +  &
-                       metadata%measurement_time_start%minute *   60 +  &
-                       metadata%measurement_time_start%second
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute, &
+                metadata%time_start%second
+           startTime = metadata%time_start%hour   * 3600 +  &
+                       metadata%time_start%minute *   60 +  &
+                       metadata%time_start%second
 
            read(line(20:33),'(i2,2i2,i4,2i2)') &
-                metadata%buoy_lat_start%deg,   &
-                metadata%buoy_lat_start%min,   &
-                metadata%buoy_lat_start%sec,   &
-                metadata%buoy_lon_start%deg,   &
-                metadata%buoy_lon_start%min,   &
-                metadata%buoy_lon_start%sec
+                metadata%lat_start%deg,   &
+                metadata%lat_start%min,   &
+                metadata%lat_start%sec,   &
+                metadata%lon_start%deg,   &
+                metadata%lon_start%min,   &
+                metadata%lon_start%sec
 
            write ( * , * ) "Start of measurement ",     &
-                metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute
         end if
 
         if ( i == 5 ) then
            read(line(2:15),'(i4,5i2)')                &
-                metadata%measurement_time_end%year,   &
-                metadata%measurement_time_end%month,  &
-                metadata%measurement_time_end%day,    &
-                metadata%measurement_time_end%hour,   &
-                metadata%measurement_time_end%minute, &
-                metadata%measurement_time_end%second
+                metadata%time_end%year,   &
+                metadata%time_end%month,  &
+                metadata%time_end%day,    &
+                metadata%time_end%hour,   &
+                metadata%time_end%minute, &
+                metadata%time_end%second
    
           read(line(20:33),'(i2,2i2,i4,2i2)') &
-                metadata%buoy_lat_end%deg, &
-                metadata%buoy_lat_end%min, &
-                metadata%buoy_lat_end%sec, &
-                metadata%buoy_lon_end%deg, &
-                metadata%buoy_lon_end%min, &
-                metadata%buoy_lon_end%sec
+                metadata%lat_end%deg, &
+                metadata%lat_end%min, &
+                metadata%lat_end%sec, &
+                metadata%lon_end%deg, &
+                metadata%lon_end%min, &
+                metadata%lon_end%sec
 
           write ( * , * ) "Start of measurement ",   &
-                metadata%measurement_time_end%year,   &
-                metadata%measurement_time_end%month,  &
-                metadata%measurement_time_end%day,    &
-                metadata%measurement_time_end%hour,   &
-                metadata%measurement_time_end%minute
+                metadata%time_end%year,   &
+                metadata%time_end%month,  &
+                metadata%time_end%day,    &
+                metadata%time_end%hour,   &
+                metadata%time_end%minute
         end if
 
      case ( iostat_end )
@@ -415,13 +395,13 @@ subroutine convert_data (infile)
           if ( abs(buoydata(i)%time) < 99.0 ) then
 
             ! convert time signal
-            call date_converter(buoydata(i)%day, metadata%measurement_time_start%month, year, month, day)
+            call date_converter(buoydata(i)%day, metadata%time_start%month, year, month, day)
             call time_converter(buoydata(i)%time, hour, minute, second)
 
             days = days_between( year, month, day,                       &
-                                 metadata%measurement_time_start%year,   &
-                                 metadata%measurement_time_start%month,  &
-                                 metadata%measurement_time_start%day)
+                                 metadata%time_start%year,   &
+                                 metadata%time_start%month,  &
+                                 metadata%time_start%day)
 
             buoyTime(i) = days * 86400 + hour*3600 + minute*60 + second
 
@@ -460,11 +440,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
 
   use GATEbuoy_mod
-  use GATE_utils_mod
-
+  use GATE_netcdf_mod
+  
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                        intent(in) :: no_of_measurements
@@ -515,28 +493,28 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                        &
-       & metadata%measurement_time_start%year,   '-',  &
-       & metadata%measurement_time_start%month,  '-',  &
-       & metadata%measurement_time_start%day,    ' ',  &
+       & metadata%time_start%year,   '-',  &
+       & metadata%time_start%month,  '-',  &
+       & metadata%time_start%day,    ' ',  &
        & 0,                                      ':',  &
        & 0,                                      ':',  &
        & 0
 
-  position_start_lon = metadata%buoy_lon_start%deg +      &
-       &             ( metadata%buoy_lon_start%min * 60 + &
-       &               metadata%buoy_lon_start%sec ) / 3600.0
+  position_start_lon = metadata%lon_start%deg +      &
+       &             ( metadata%lon_start%min * 60 + &
+       &               metadata%lon_start%sec ) / 3600.0
 
-  position_start_lat = metadata%buoy_lat_start%deg +      &
-       &             ( metadata%buoy_lat_start%min * 60 + &
-       &               metadata%buoy_lat_start%sec ) / 3600.0
+  position_start_lat = metadata%lat_start%deg +      &
+       &             ( metadata%lat_start%min * 60 + &
+       &               metadata%lat_start%sec ) / 3600.0
 
-  position_end_lon = metadata%buoy_lon_end%deg +      &
-       &           ( metadata%buoy_lon_end%min * 60 + &
-       &             metadata%buoy_lon_end%sec ) / 3600.0
+  position_end_lon = metadata%lon_end%deg +      &
+       &           ( metadata%lon_end%min * 60 + &
+       &             metadata%lon_end%sec ) / 3600.0
 
-  position_end_lat = metadata%buoy_lat_end%deg +      &
-       &           ( metadata%buoy_lat_end%min * 60 + &
-       &             metadata%buoy_lat_end%sec ) / 3600.0
+  position_end_lat = metadata%lat_end%deg +      &
+       &           ( metadata%lat_end%min * 60 + &
+       &             metadata%lat_end%sec ) / 3600.0
 
   ! start writing
 
@@ -557,39 +535,23 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
 
   call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
 
-  call handle_err(nf_def_var(ncid, "ws",  NF_FLOAT, ndims, dimids, ws_id))
-  call handle_err(nf_def_var(ncid, "wd",  NF_FLOAT, ndims, dimids, wd_id))
-  call handle_err(nf_def_var(ncid, "q",   NF_FLOAT, ndims, dimids, q_id))
-  call handle_err(nf_def_var(ncid, "dbt", NF_FLOAT, ndims, dimids, dbt_id))
-  call handle_err(nf_def_var(ncid, "sst", NF_FLOAT, ndims, dimids, sst_id))
-
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
+
+  wd_id =  define_variable_and_attribute_real( &
+       ncid, dimids, 'ws', 'wind_speed', 'wind speed', metadata%wind_unit, -1.0)
   
-  call handle_err(nf_put_att_text(ncid, ws_id, "standard_name", 10, "wind_speed"))
-  call handle_err(nf_put_att_text(ncid, ws_id, "long_name", 10, "wind speed"))
-  call handle_err(nf_put_att_text(ncid, ws_id, "units", len(metadata%wind_unit), metadata%wind_unit))
-  call handle_err(nf_put_att_real(ncid, ws_id, "_FillValue", NF_REAL, 1, -1.0))
+  ws_id =  define_variable_and_attribute_real( &
+       ncid, dimids, 'wd', 'wind_from_direction', 'wind from direction', metadata%wind_dir_unit, -1.0)
+  
+  dbt_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'dbt', 'dry_bulb_temperature', 'dry bulb temperature', metadata%temperature_unit, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, wd_id, "standard_name", 19, "wind_from_direction"))
-  call handle_err(nf_put_att_text(ncid, wd_id, "long_name", 19, "wind from direction"))
-  call handle_err(nf_put_att_text(ncid, wd_id, "units", len(metadata%wind_dir_unit), metadata%wind_dir_unit))
-  call handle_err(nf_put_att_real(ncid, wd_id, "_FillValue", NF_REAL, 1, -1.0))
+  q_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%specific_humidity_unit, 999.0)
 
-  call handle_err(nf_put_att_text(ncid, dbt_id, "standard_name", 20, "dry_bulb_temperature"))
-  call handle_err(nf_put_att_text(ncid, dbt_id, "long_name", 20, "dry bulb temperature"))
-  call handle_err(nf_put_att_text(ncid, dbt_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, dbt_id, "_FillValue", NF_REAL, 1, 999.9))
-
-  call handle_err(nf_put_att_text(ncid, q_id, "standard_name", 17, "specific_humidity"))
-  call handle_err(nf_put_att_text(ncid, q_id, "long_name", 17, "specific humidity"))
-  call handle_err(nf_put_att_text(ncid, q_id, "units", len(metadata%humidity_unit), metadata%humidity_unit))
-  call handle_err(nf_put_att_real(ncid, q_id, "_FillValue", NF_REAL, 1, 999.9))
-
-  call handle_err(nf_put_att_text(ncid, sst_id, "standard_name", 23, "sea_surface_temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "long_name", 23, "sea surface temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, sst_id, "_FillValue", NF_REAL, 1, 999.9))
+  sst_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'sst', 'sea_surface_temperature', 'sea surface temperature', metadata%temperature_unit, 999.9)
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "shipname", len(trim(adjustl(metadata%shipname2))), &
        trim(adjustl(metadata%shipname2))))

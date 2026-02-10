@@ -1,7 +1,7 @@
 #define FILENAME_LENGHT 132
 module GATEdship_mod
 
-  use GATE_metadata_mod, only : datetime, position
+  use GATE_metadata_mod
 
   integer, parameter :: no_of_records_in_line = 6 ! see format string 110
 
@@ -51,22 +51,7 @@ module GATEdship_mod
      real    :: WIND_V_COM_MAST
   end type GATE_dship_type
 
-  type :: GATE_metadata_type
-
-     character(len=32) :: shipname
-     type (datetime)   :: measurement_time_start
-     real              :: interval
-     character         :: interval_unit
-
-     character(len=2)  :: pressure_unit='Pa'
-     character(len=6)  :: radiation_unit='W/m**2'
-     character(len=6)  :: temperature_unit='kelvin'
-     character(len=5)  :: humidity_unit='kg/kg'
-     character(len=3)  :: wind_unit='m/s' 
-
-  end type GATE_metadata_type
-
-  public :: GATE_dship_type, GATE_metadate_type
+  public :: GATE_dship_type
 
   contains
 
@@ -219,6 +204,7 @@ program GATEdship
         write ( * , * )
         write ( * , * ) trim(infile), ':'
         write ( * , * ) ' - wrong format description'
+        write ( * , * ) 'Need ', line(2:60)
         stop
      end if
 
@@ -263,6 +249,8 @@ subroutine convert_data (infile)
   ! measurement and field metadata
   type (GATE_metadata_type) :: metadata
 
+  real    :: interval
+
   integer :: ierror = 0
   integer :: no_of_measurement
 
@@ -295,32 +283,33 @@ subroutine convert_data (infile)
      case ( 0 )
 
         if ( i == 2 ) then
-           metadata%shipname = line(16:39)
+           metadata%shipname1 = line(16:39)
         end if
 
         if ( i == 7 ) then
-           read(line(17:25),'(F9.1)') metadata%interval
+           read(line(17:25),'(F9.1)') interval
            read(line(26:26),'(A1)')   metadata%interval_unit
+           metadata%interval = int(interval)
            write ( * , * ) "Sampling interval ", metadata%interval,metadata%interval_unit 
         end if
 
         if ( i == 4 ) then
            read(line(2:15),'(i4,5i2)')                  &
-                metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute, &
-                metadata%measurement_time_start%second
-           startTime = metadata%measurement_time_start%hour   * 3600 +  &
-                       metadata%measurement_time_start%minute *   60 +  &
-                       metadata%measurement_time_start%second
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute, &
+                metadata%time_start%second
+           startTime = metadata%time_start%hour   * 3600 +  &
+                       metadata%time_start%minute *   60 +  &
+                       metadata%time_start%second
 
-           write ( * , * ) "Start of measurement ", metadata%measurement_time_start%year,   &
-                metadata%measurement_time_start%month,  &
-                metadata%measurement_time_start%day,    &
-                metadata%measurement_time_start%hour,   &
-                metadata%measurement_time_start%minute
+           write ( * , * ) "Start of measurement ", metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute
         end if
 
      case ( iostat_end )
@@ -395,9 +384,9 @@ subroutine convert_data (infile)
             ! convert time signal
             call date_converter(shipdata(i)%date, year, month, day)
             call time_converter(shipdata(i)%time, hour, minute, second)
-            days = days_between( metadata%measurement_time_start%year,   &
-                                 metadata%measurement_time_start%month,  &
-                                 metadata%measurement_time_start%day, year, month, day)
+            days = days_between( metadata%time_start%year,   &
+                                 metadata%time_start%month,  &
+                                 metadata%time_start%day, year, month, day)
 
             shipTime(i) = days * 86400 + hour*3600 + minute*60 + second
             ! write ( * , * ) " Time ", shipdata(i)%date, shipdata(i)%time, shipTime(i)
@@ -406,8 +395,7 @@ subroutine convert_data (infile)
                 write ( * , * ) "WARNING for time ", &
                                 shipdata(i)%date, shipdata(i)%time, hour, minute, second, &
                                 shipTime(i), shipTimePrev
-             else
-              ! write ( * , * ) shipdata(i)%date, shipdata(i)%time, hour, minute, second, shipTime(i)
+            else
               shipdata(i)%time = shipTime(i)
               shipTimePrev = shipTime(i)
               no_of_measurement = no_of_measurement + 1
@@ -439,11 +427,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
 
   use GATEdship_mod
-  use GATE_utils_mod
+  use GATE_netcdf_mod
 
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                        intent(in) :: no_of_measurements
@@ -494,17 +480,17 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                        &
-       & metadata%measurement_time_start%year,   '-',  &
-       & metadata%measurement_time_start%month,  '-',  &
-       & metadata%measurement_time_start%day,    ' ',  &
-       & metadata%measurement_time_start%hour,   ':',  &
-       & metadata%measurement_time_start%minute, ':',  &
-       & metadata%measurement_time_start%second
+       & metadata%time_start%year,   '-',  &
+       & metadata%time_start%month,  '-',  &
+       & metadata%time_start%day,    ' ',  &
+       & metadata%time_start%hour,   ':',  &
+       & metadata%time_start%minute, ':',  &
+       & metadata%time_start%second
 
   ! start writing
 
   write ( * , * ) trim(infile), ':'
-  write ( outfile, '(A,A1,I0.4,A4)' ) trim(infile), '_', int(metadata%interval), 'S.nc'
+  write ( outfile, '(A,A1,I0.4,A4)' ) trim(infile), '_', metadata%interval, 'S.nc'
 
   call handle_err(nf_create( outfile, NF_CLOBBER, ncid))
 
@@ -519,65 +505,43 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
   edge(1)  = 1
 
   call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
-
-  call handle_err(nf_def_var(ncid, "lat",  NF_FLOAT, ndims, dimids, lat_id))
-  call handle_err(nf_def_var(ncid, "lon",  NF_FLOAT, ndims, dimids, lon_id))
-  call handle_err(nf_def_var(ncid, "rsds", NF_FLOAT, ndims, dimids, rsds_id))
-  call handle_err(nf_def_var(ncid, "rlus", NF_FLOAT, ndims, dimids, rlus_id))
-  call handle_err(nf_def_var(ncid, "nrad", NF_FLOAT, ndims, dimids, nrad_id))
-  call handle_err(nf_def_var(ncid, "p",    NF_FLOAT, ndims, dimids, p_id))
-  call handle_err(nf_def_var(ncid, "q",    NF_FLOAT, ndims, dimids, q_id))
-
-  call handle_err(nf_def_var(ncid, "sst",  NF_FLOAT, ndims, dimids, sst_id))
-
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
-  call handle_err(nf_put_att_text(ncid, lat_id, "standard_name", 8, "latitude"))
-  call handle_err(nf_put_att_text(ncid, lat_id, "units", 13, "degrees_north"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "standard_name", 9, "longitude"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "units", 12, "degrees_east"))
+  lat_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lat', 'latitude', 'latitude', 'degrees_north')
 
-  call handle_err(nf_put_att_text(ncid, rsds_id, "standard_name", 24, "incoming_solar_radiation"))
-  call handle_err(nf_put_att_text(ncid, rsds_id, "long_name", 24, "incoming solar radiation"))
-  call handle_err(nf_put_att_text(ncid, rsds_id, "units", len(metadata%radiation_unit), metadata%radiation_unit))
-  call handle_err(nf_put_att_real(ncid, rsds_id, "_FillValue", NF_REAL, 1, 9.9))
+  lon_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lon', 'longitude', 'longitude', 'degrees_east')
 
-  call handle_err(nf_put_att_text(ncid, rlus_id, "standard_name", 24, "reflective_solar_radiation"))
-  call handle_err(nf_put_att_text(ncid, rlus_id, "long_name", 24, "reflective solar radiation"))
-  call handle_err(nf_put_att_text(ncid, rlus_id, "units", len(metadata%radiation_unit), metadata%radiation_unit))
-  call handle_err(nf_put_att_real(ncid, rlus_id, "_FillValue", NF_REAL, 1, 9.9))
+  rsds_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'rsds', 'incoming_solar_radiation', 'incoming solar radiation', metadata%radiation_unit, 9.9)
 
-  call handle_err(nf_put_att_text(ncid, nrad_id, "standard_name", 17, "net_radiation"))
-  call handle_err(nf_put_att_text(ncid, nrad_id, "long_name", 17, "net radiation"))
-  call handle_err(nf_put_att_text(ncid, nrad_id, "units", len(metadata%radiation_unit), metadata%radiation_unit))
-  call handle_err(nf_put_att_real(ncid, nrad_id, "_FillValue", NF_REAL, 1, 99.99))
+  rlus_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'rlus', 'reflective_solar_radiation', 'reflective solar radiation', metadata%radiation_unit, 9.9)
 
-  call handle_err(nf_put_att_text(ncid, p_id, "standard_name", 12, "air_pressure"))
-  call handle_err(nf_put_att_text(ncid, p_id, "long_name", 12, "air pressure"))
-  call handle_err(nf_put_att_text(ncid, p_id, "units", len(metadata%pressure_unit), metadata%pressure_unit))
-  call handle_err(nf_put_att_real(ncid, p_id, "_FillValue", NF_REAL, 1, 99999.9))
+  nrad_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'nrad', 'net_radiation', 'net radiation', metadata%radiation_unit, 99.99)
+  
+  p_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'p', 'air_pressure', 'air pressure', metadata%pressure_unit, 99999.9)
 
-  call handle_err(nf_put_att_text(ncid, q_id, "standard_name", 17, "specific_humidity"))
-  call handle_err(nf_put_att_text(ncid, q_id, "long_name", 17, "specific humidity"))
-  call handle_err(nf_put_att_text(ncid, q_id, "units", len(metadata%humidity_unit), metadata%humidity_unit))
-  call handle_err(nf_put_att_real(ncid, q_id, "_FillValue", NF_REAL, 1, 99999.9))
+  q_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%specific_humidity_unit, 99999.9)
 
-  call handle_err(nf_put_att_text(ncid, sst_id, "standard_name", 15, "sea_surface_temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "long_name", 15, "sea surface temperature"))
-  call handle_err(nf_put_att_text(ncid, sst_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, sst_id, "_FillValue", NF_REAL, 1, 999.9))
+  sst_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'sst', 'sea_surface_temperature', 'sea surface temperature', metadata%temperature_unit, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "shipname", len(trim(adjustl(metadata%shipname))), &
-       trim(adjustl(metadata%shipname))))
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "shipname1", len(trim(adjustl(metadata%shipname1))), &
+       trim(adjustl(metadata%shipname1))))
 
-  call handle_err(nf_put_att_real(ncid, NF_GLOBAL, "Average_interval", NF_REAL, 1, metadata%interval))
+  call handle_err(nf_put_att_real(ncid, NF_GLOBAL, "Average_interval", NF_REAL, 1, real(metadata%interval)))
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
 
   call handle_err(nf_enddef (ncid))
 
-  write ( * , * ) " - ", trim(adjustl(metadata%shipname)), ', sample interval ', metadata%interval
+  write ( * , * ) " - ", trim(adjustl(metadata%shipname1)), ', sample interval ', metadata%interval
 
   do i = 1, no_of_measurements
      if ( dshipdata(i)%sea_surf_temp < 0.0 ) then
@@ -595,7 +559,7 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
      else
         q(i) = dshipdata(i)%spec_humidity1 / 1000.0
      endif
-     write ( * , * ) dshipdata(i)%time, sst(i), p(i), dshipdata(i)%spec_humidity1, q(i)
+     ! write ( * , * ) dshipdata(i)%time, sst(i), p(i), dshipdata(i)%spec_humidity1, q(i)
   enddo
   
   call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), float(dshipdata(1:no_of_measurements)%time)))

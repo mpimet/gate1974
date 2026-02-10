@@ -1,7 +1,7 @@
 #define FILENAME_LENGHT 132
 module GATEradiosonde_mod
 
-  use GATE_metadata_mod, only : datetime, position
+  use GATE_metadata_mod
 
   type :: GATE_radiosonde_type
      ! do not change the sequence within this type
@@ -17,28 +17,6 @@ module GATEradiosonde_mod
      real :: WIND_VEL_V_COMP
      real :: V_COMP_ERROR
   end type GATE_radiosonde_type
-
-  type :: GATE_metadata_type
-
-     character(len=32) :: platform
-     integer           :: flight_id
-     type (datetime)   :: launch_time_start
-     type (datetime)   :: launch_time_end
-     type (position)   :: launch_lat_start      
-     type (position)   :: launch_lon_start     
-     type (position)   :: launch_lat_end      
-     type (position)   :: launch_lon_end     
-     real              :: p_start
-     real              :: p_end   
-     real              :: height_max
-
-     character(len=2)  :: p_units='Pa'
-     character(len=1)  :: alt_units='m'
-     character(len=6)  :: t_units='kelvin'
-     character(len=5)  :: sh_units='kg/kg'
-     character(len=3)  :: wind_units='m/s' 
-
-  end type GATE_metadata_type
 
   public :: GATE_radiosonde_type, GATE_metadate_type
 
@@ -155,36 +133,36 @@ subroutine convert_data (infile)
 
         if ( i == 4 ) then
            read(line(2:15),'(i4,5i2)')             &
-                metadata%launch_time_start%year,   &
-                metadata%launch_time_start%month,  &
-                metadata%launch_time_start%day,    &
-                metadata%launch_time_start%hour,   &
-                metadata%launch_time_start%minute, &
-                metadata%launch_time_start%second
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute, &
+                metadata%time_start%second
            read(line(19:33),'(i3,2i2,i4,2i2)') &
-                metadata%launch_lat_start%deg, &
-                metadata%launch_lat_start%min, &
-                metadata%launch_lat_start%sec, &
-                metadata%launch_lon_start%deg, &
-                metadata%launch_lon_start%min, &
-                metadata%launch_lon_start%sec
+                metadata%lat_start%deg, &
+                metadata%lat_start%min, &
+                metadata%lat_start%sec, &
+                metadata%lon_start%deg, &
+                metadata%lon_start%min, &
+                metadata%lon_start%sec
         end if
 
         if ( i == 5 ) then
            read(line(2:15),'(i4,5i2)')           &
-                metadata%launch_time_end%year,   &
-                metadata%launch_time_end%month,  &
-                metadata%launch_time_end%day,    &
-                metadata%launch_time_end%hour,   &
-                metadata%launch_time_end%minute, &
-                metadata%launch_time_end%second
+                metadata%time_end%year,   &
+                metadata%time_end%month,  &
+                metadata%time_end%day,    &
+                metadata%time_end%hour,   &
+                metadata%time_end%minute, &
+                metadata%time_end%second
            read(line(19:33),'(i3,2i2,i4,2i2)')   &
-                metadata%launch_lat_end%deg, &
-                metadata%launch_lat_end%min, &
-                metadata%launch_lat_end%sec, &
-                metadata%launch_lon_end%deg, &
-                metadata%launch_lon_end%min, &
-                metadata%launch_lon_end%sec
+                metadata%lat_end%deg, &
+                metadata%lat_end%min, &
+                metadata%lat_end%sec, &
+                metadata%lon_end%deg, &
+                metadata%lon_end%min, &
+                metadata%lon_end%sec
         end if
 
         if ( i == 17 ) read(line(1:80),'(62X,i6)') no_of_levels
@@ -304,9 +282,9 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   integer :: p_id
   integer :: alt_id
   integer :: t_id, terr_id
-  integer :: sh_id, sherr_id
-  integer :: u_id,  uerr_id
-  integer :: v_id,  verr_id
+  integer :: q_id, qerr_id
+  integer :: u_id, uerr_id
+  integer :: v_id, verr_id
 
   real    :: time(1)
   real    :: position_start_lon, position_start_lat
@@ -324,28 +302,28 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                        &
-       & metadata%launch_time_start%year,   '-',  &
-       & metadata%launch_time_start%month,  '-',  &
-       & metadata%launch_time_start%day,    ' ',  &
-       & metadata%launch_time_start%hour,   ':',  &
-       & metadata%launch_time_start%minute, ':',  &
-       & metadata%launch_time_start%second
+       & metadata%time_start%year,   '-',  &
+       & metadata%time_start%month,  '-',  &
+       & metadata%time_start%day,    ' ',  &
+       & metadata%time_start%hour,   ':',  &
+       & metadata%time_start%minute, ':',  &
+       & metadata%time_start%second
 
-  position_start_lon = metadata%launch_lon_start%deg +      &
-       &             ( metadata%launch_lon_start%min * 60 + &
-       &               metadata%launch_lon_start%sec ) / 3600.0
+  position_start_lon = metadata%lon_start%deg +      &
+       &             ( metadata%lon_start%min * 60 + &
+       &               metadata%lon_start%sec ) / 3600.0
 
-  position_start_lat = metadata%launch_lat_start%deg +      &
-       &             ( metadata%launch_lat_start%min * 60 + &
-       &               metadata%launch_lat_start%sec ) / 3600.0
+  position_start_lat = metadata%lat_start%deg +      &
+       &             ( metadata%lat_start%min * 60 + &
+       &               metadata%lat_start%sec ) / 3600.0
 
-  position_end_lon = metadata%launch_lon_end%deg +      &
-       &           ( metadata%launch_lon_end%min * 60 + &
-       &             metadata%launch_lon_end%sec ) / 3600.0
+  position_end_lon = metadata%lon_end%deg +      &
+       &           ( metadata%lon_end%min * 60 + &
+       &             metadata%lon_end%sec ) / 3600.0
 
-  position_end_lat = metadata%launch_lat_end%deg +      &
-       &           ( metadata%launch_lat_end%min * 60 + &
-       &             metadata%launch_lat_end%sec ) / 3600.0
+  position_end_lat = metadata%lat_end%deg +      &
+       &           ( metadata%lat_end%min * 60 + &
+       &             metadata%lat_end%sec ) / 3600.0
 
   ! start writing
 
@@ -371,35 +349,35 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   call handle_err(nf_put_att_text(ncid, flight_time_id, 'units', len(seconds_since), seconds_since))
   
   p_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'p', 'air_pressure', 'air pressure', metadata%p_units, 999999.0)
+       ncid, dimids, 'p', 'air_pressure', 'air pressure', metadata%pressure_unit, 999999.0)
 
   alt_id = define_variable_and_attribute_real(ncid, dimids, 'altitude', 'geopotential_height', &
-       'geopotential height', metadata%alt_units, 99999.0)
+       'geopotential height', metadata%altitude_unit, 99999.0)
   call handle_err(nf_put_att_text(ncid, alt_id, "positive", 2, "up"))
 
   t_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'ta', 'temperature', 'temperature', metadata%t_units, 9999.0)
+       ncid, dimids, 'ta', 'temperature', 'temperature', metadata%temperature_unit, 9999.0)
 
   terr_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'ta_err', 'temperature_error', 'temperature error', metadata%t_units, 9.9 )
+       ncid, dimids, 'ta_err', 'temperature_error', 'temperature error', metadata%temperature_unit, 9.9 )
   
-  sh_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%sh_units,  99.0)
+  q_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%specific_humidity_unit, 99.0)
 
-  sherr_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'q_err', 'specific_humidity_error', 'specific humidity error', metadata%sh_units,  99.99)
+  qerr_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q_err', 'specific_humidity_error', 'specific humidity error', metadata%specific_humidity_unit, 99.99)
 
   u_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'u', 'eastward_wind', 'eastward wind', metadata%wind_units, 999.9 )
+       ncid, dimids, 'u', 'eastward_wind', 'eastward wind', metadata%wind_unit, 999.9 )
 
   uerr_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'u_err', 'eastward_wind',  'eastward wind error', metadata%wind_units, 99.9 )
+       ncid, dimids, 'u_err', 'eastward_wind',  'eastward wind error', metadata%wind_unit, 99.9 )
 
   v_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'v', 'northward_wind', 'northward wind', metadata%wind_units, 999.9)
+       ncid, dimids, 'v', 'northward_wind', 'northward wind', metadata%wind_unit, 999.9)
 
   verr_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'v_err', 'northward_wind_error', 'northward wind error', metadata%wind_units, 99.9)
+       ncid, dimids, 'v_err', 'northward_wind_error', 'northward wind error', metadata%wind_unit, 99.9)
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
        trim(adjustl(metadata%platform))))
@@ -439,8 +417,8 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   call handle_err(nf_put_vara(ncid, alt_id,         start, edge, radiosondedata(1:no_of_levels)%altitude))
   call handle_err(nf_put_vara(ncid, t_id,           start, edge, ta))
   call handle_err(nf_put_vara(ncid, terr_id,        start, edge, radiosondedata(1:no_of_levels)%temp_error))
-  call handle_err(nf_put_vara(ncid, sh_id,          start, edge, q))
-  call handle_err(nf_put_vara(ncid, sherr_id,       start, edge, radiosondedata(1:no_of_levels)%humdty_error))
+  call handle_err(nf_put_vara(ncid, q_id,           start, edge, q))
+  call handle_err(nf_put_vara(ncid, qerr_id,        start, edge, radiosondedata(1:no_of_levels)%humdty_error))
   call handle_err(nf_put_vara(ncid, u_id,           start, edge, radiosondedata(1:no_of_levels)%wind_vel_u_comp))
   call handle_err(nf_put_vara(ncid, uerr_id,        start, edge, radiosondedata(1:no_of_levels)%u_comp_error))
   call handle_err(nf_put_vara(ncid, v_id,           start, edge, radiosondedata(1:no_of_levels)%wind_vel_v_comp))

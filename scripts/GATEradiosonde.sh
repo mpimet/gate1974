@@ -34,7 +34,7 @@ process_platform() {
   cd ${out_path}
   cp ${in_path}/* .
   for infile in `ls -1`; do
-    ${thisdir}/GATEradiosonde_38aca3.x $infile
+    ${thisdir}/GATEradiosondex $infile
     mv ${infile}.nc ../.
   done
   [ "$keepFiles" = false ] && rm -r ${out_path}
