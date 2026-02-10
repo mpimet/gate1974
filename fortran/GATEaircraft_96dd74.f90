@@ -1,6 +1,8 @@
 #define FILENAME_LENGHT 132
 module GATEaircraft_mod
 
+  use GATE_metadata_mod
+
   integer, parameter :: no_of_records_in_line = 13 ! see format string 110
 
   type :: GATE_aircraft_type
@@ -39,7 +41,6 @@ end module GATEaircraft_mod
 ! ----------------------
 
 program GATEaircraft
-use GATEaircraft_mod
 
   ! ASCII Input
   !
@@ -295,9 +296,9 @@ subroutine convert_data (infile)
                    flightTimePrev = flightTime(i)
                    no_of_measurement = no_of_measurement + 1
                    aircraftdata(no_of_measurement) = flightdata(i)
-              endif
+              end if
 
-           endif
+           end if
         end do
 
      end if
@@ -329,12 +330,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   use GATEaircraft_mod
-  use GATE_metadata_mod
-  use GATE_utils_mod
+  use GATE_netcdf_mod
 
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                        intent(in) :: no_of_measurements
@@ -352,10 +350,10 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   integer :: measurement_time_id
   integer :: measurement_id, timer_id
   integer :: lat_id, lon_id
-  integer :: pressure_id, altitude_id
-  integer :: temperature1_id, temperature2_id
-  integer :: dew_point_temperature_id
-  integer :: specific_humidity_id
+  integer :: p_id, alt_id
+  integer :: ta1_id, ta2_id
+  integer :: dew_id
+  integer :: q_id
 
   real    :: p(no_of_measurements)
   real    :: z(no_of_measurements)
@@ -415,62 +413,39 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   edge(1)  = 1
 
   call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
-
-  call handle_err(nf_def_var(ncid, "lat",  NF_FLOAT, ndims, dimids, lat_id))
-  call handle_err(nf_def_var(ncid, "lon",  NF_FLOAT, ndims, dimids, lon_id))
-  call handle_err(nf_def_var(ncid, "p",    NF_FLOAT, ndims, dimids, pressure_id))
-  call handle_err(nf_def_var(ncid, "ta",   NF_FLOAT, ndims, dimids, temperature1_id))
-  call handle_err(nf_def_var(ncid, "ta_2", NF_FLOAT, ndims, dimids, temperature2_id))
-  call handle_err(nf_def_var(ncid, "dew",  NF_FLOAT, ndims, dimids, dew_point_temperature_id))
-  call handle_err(nf_def_var(ncid, "q",    NF_FLOAT, ndims, dimids, specific_humidity_id))
-  call handle_err(nf_def_var(ncid, "z",    NF_FLOAT, ndims, dimids, altitude_id))
-
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
-  call handle_err(nf_put_att_text(ncid, lat_id, "standard_name", 8, "latitude"))
-  call handle_err(nf_put_att_text(ncid, lat_id, "units", 13, "degrees_north"))
-  call handle_err(nf_put_att_real(ncid, lat_id, "_FillValue", NF_REAL, 1, 9999.999))
+  lat_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lat', 'latitude', 'latitude', 'degrees_north', 9999.999)
 
-  call handle_err(nf_put_att_text(ncid, lon_id, "standard_name", 9, "longitude"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "units", 12, "degrees_east"))
-  call handle_err(nf_put_att_real(ncid, lon_id, "_FillValue", NF_REAL, 1, 100000.))
+  lon_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lon', 'longitude', 'longitude', 'degrees_east', 100000.0)
 
-  call handle_err(nf_put_att_text(ncid, pressure_id, "standard_name", 12, "air_pressure"))
-  call handle_err(nf_put_att_text(ncid, pressure_id, "long_name", 12, "air pressure"))
-  call handle_err(nf_put_att_text(ncid, pressure_id, "units", &
-                                  len(metadata%pressure_unit), metadata%pressure_unit))
-  call handle_err(nf_put_att_real(ncid, pressure_id, "_FillValue", NF_REAL, 1, 999999.9))
+  p_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'p', 'air_pressure', &
+       'air pressure', metadata%pressure_unit, 999999.0)
 
-  call handle_err(nf_put_att_text(ncid, altitude_id, "standard_name", 8, "altitude"))
-  call handle_err(nf_put_att_text(ncid, altitude_id, "long_name", 8, "altitude"))
-  call handle_err(nf_put_att_text(ncid, altitude_id, "units", &
-                                  len(metadata%altitude_unit), metadata%altitude_unit))
-  call handle_err(nf_put_att_real(ncid, altitude_id, "_FillValue", NF_REAL, 1, 9999.0))
+  alt_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'z', 'altitude', &
+       'altitude', metadata%altitude_unit, 9999.0)
 
-  call handle_err(nf_put_att_text(ncid, temperature1_id, "standard_name", 15, "air_temperature"))
-  call handle_err(nf_put_att_text(ncid, temperature1_id, "long_name", 15, "air temperature"))
-  call handle_err(nf_put_att_text(ncid, temperature1_id, "units", &
-                                  len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, temperature1_id, "_FillValue", NF_REAL, 1, 999.9))
+  ta1_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'ta', 'air_temperature', &
+       'air temperature', metadata%temperature_unit, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, temperature2_id, "standard_name", 15, "air_temperature"))
-  call handle_err(nf_put_att_text(ncid, temperature2_id, "long_name", 15, "air temperature"))
-  call handle_err(nf_put_att_text(ncid, temperature2_id, "units", &
-                                  len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, temperature2_id, "_FillValue", NF_REAL, 1, 999.9))
+  ta2_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'ta_2', 'air_temperature', &
+       'air temperature', metadata%temperature_unit, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, dew_point_temperature_id, "standard_name", 21, "dew_point_temperature"))
-  call handle_err(nf_put_att_text(ncid, dew_point_temperature_id, "long_name", 21, "dew_point_temperature"))
-  call handle_err(nf_put_att_text(ncid, dew_point_temperature_id, "units", &
-                                  len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, dew_point_temperature_id, "_FillValue", NF_REAL, 1, 999.9))
+  dew_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'dew', 'dew_point_temperature', &
+       'dew point temperature', metadata%temperature_unit, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, specific_humidity_id, "standard_name", 21, "dew_point_temperature"))
-  call handle_err(nf_put_att_text(ncid, specific_humidity_id, "units", &
-                                  len(metadata%specific_humidity_unit), metadata%specific_humidity_unit))
-  call handle_err(nf_put_att_real(ncid, specific_humidity_id, "_FillValue", NF_REAL, 1, 999.9))
-  
+  q_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'dew', 'specific_humidity', &
+       'specific humidity', metadata%specific_humidity_unit, 999.9)
+
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "aircraft", len(trim(adjustl(metadata%aircraftname))), &
        trim(adjustl(metadata%aircraftname))))
 
@@ -504,14 +479,14 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   
   call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), aircraftdata(1:no_of_measurements)%time))
 
-  call handle_err(nf_put_vara(ncid, lat_id,                   start, edge, aircraftdata(1:no_of_measurements)%latitude))
-  call handle_err(nf_put_vara(ncid, lon_id,                   start, edge, aircraftdata(1:no_of_measurements)%longitude))
-  call handle_err(nf_put_vara(ncid, pressure_id,              start, edge, p))
-  call handle_err(nf_put_vara(ncid, altitude_id,              start, edge, z))
-  call handle_err(nf_put_vara(ncid, temperature1_id,          start, edge, ta))
-  call handle_err(nf_put_vara(ncid, temperature2_id,          start, edge, ta_2))
-  call handle_err(nf_put_vara(ncid, dew_point_temperature_id, start, edge,aircraftdata(1:no_of_measurements)%dew_point_temperature))
-  call handle_err(nf_put_vara(ncid, specific_humidity_id,     start, edge, aircraftdata(1:no_of_measurements)%specific_humidity))
+  call handle_err(nf_put_vara(ncid, lat_id, start, edge, aircraftdata(1:no_of_measurements)%latitude))
+  call handle_err(nf_put_vara(ncid, lon_id, start, edge, aircraftdata(1:no_of_measurements)%longitude))
+  call handle_err(nf_put_vara(ncid, p_id,   start, edge, p))
+  call handle_err(nf_put_vara(ncid, alt_id, start, edge, z))
+  call handle_err(nf_put_vara(ncid, ta1_id, start, edge, ta))
+  call handle_err(nf_put_vara(ncid, ta2_id, start, edge, ta_2))
+  call handle_err(nf_put_vara(ncid, dew_id, start, edge, aircraftdata(1:no_of_measurements)%dew_point_temperature))
+  call handle_err(nf_put_vara(ncid, q_id,   start, edge, aircraftdata(1:no_of_measurements)%specific_humidity))
 
   call handle_err(nf_close(ncid))
 

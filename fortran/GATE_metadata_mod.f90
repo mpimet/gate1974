@@ -40,6 +40,7 @@ module GATE_metadata_mod
      character(len=3)  :: wind_unit='m/s' 
      character(len=3)  :: wind_dir_unit='deg'
      character(len=6)  :: radiation_unit='W/m**2'
+     character(len=7)  :: water_vapour_density='kg/m**3'
   end type GATE_metadata_type
 
   public :: datetime, position, GATE_metadata_type

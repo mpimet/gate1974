@@ -1,6 +1,8 @@
 #define FILENAME_LENGHT 132
 module GATEaircraft_mod
 
+  use GATE_metadata_mod
+
   integer, parameter :: no_of_records_in_line = 4 ! see format string 110
 
   type :: GATE_aircraft_type
@@ -300,7 +302,7 @@ subroutine convert_data (infile)
            deallocate(aircrafttempory)
            aircraftdata => aircraftcurrent
         end if
-        
+
         do i = 1, no_of_records_in_line
 
               ! convert charlie time signal
@@ -344,11 +346,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   use GATEaircraft_mod
-  use GATE_metadata_mod
+  use GATE_netcdf_mod
 
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                        intent(in) :: no_of_measurements
@@ -366,10 +366,10 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   integer :: measurement_time_id
   integer :: measurement_id, timer_id
   integer :: lat_id, lon_id
-  integer :: pressure_id
-  integer :: temperature_id
+  integer :: p_id
+  integer :: ta_id
   integer :: rhov_id
-  integer :: std_temperature_id
+  integer :: std_ta_id
   integer :: std_rhov_id
 
   real    :: lat (no_of_measurements)
@@ -394,9 +394,8 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   integer :: i
   logical :: l_good
 
-     real              :: gate_scale10 = 1000.0
-     real              :: gate_scale12 = 10.0
-
+  real    :: gate_scale10 = 1000.0
+  real    :: gate_scale12 = 10.0
   
   ! some preparation for writing global attributes
 
@@ -439,51 +438,35 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   edge(1)  = 1
 
   call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
-
-  call handle_err(nf_def_var(ncid, "lat",      NF_FLOAT, ndims, dimids, lat_id))
-  call handle_err(nf_def_var(ncid, "lon",      NF_FLOAT, ndims, dimids, lon_id))
-  call handle_err(nf_def_var(ncid, "p",        NF_FLOAT, ndims, dimids, pressure_id))
-  call handle_err(nf_def_var(ncid, "ta",       NF_FLOAT, ndims, dimids, temperature_id))
-  call handle_err(nf_def_var(ncid, "rhov",     NF_FLOAT, ndims, dimids, rhov_id))
-  call handle_err(nf_def_var(ncid, "std_ta",   NF_FLOAT, ndims, dimids, std_temperature_id))
-  call handle_err(nf_def_var(ncid, "std_rhov", NF_FLOAT, ndims, dimids, std_rhov_id))
-
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
-  call handle_err(nf_put_att_text(ncid, lat_id, "standard_name", 8, "latitude"))
-  call handle_err(nf_put_att_text(ncid, lat_id, "units", 13, "degrees_north"))
-  call handle_err(nf_put_att_real(ncid, lat_id, "_FillValue", NF_REAL, 1, 999999.9))
+  lat_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lat', 'latitude', 'latitude', 'degrees_north')
 
-  call handle_err(nf_put_att_text(ncid, lon_id, "standard_name", 9, "longitude"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "units", 12, "degrees_east"))
-  call handle_err(nf_put_att_real(ncid, lon_id, "_FillValue", NF_REAL, 1, 999999.9))
+  lon_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lon', 'longitude', 'longitude', 'degrees_east')
 
-  call handle_err(nf_put_att_text(ncid, pressure_id, "standard_name", 12, "air_pressure"))
-  call handle_err(nf_put_att_text(ncid, pressure_id, "long_name", 12, "air pressure"))
-  call handle_err(nf_put_att_text(ncid, pressure_id, "units", len(metadata%pressure_unit), metadata%pressure_unit))
-  call handle_err(nf_put_att_real(ncid, pressure_id, "_FillValue", NF_REAL, 1, 999999.9))
+  p_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'p', 'air_pressure', &
+       'air pressure', metadata%pressure_unit, 999999.9)
 
-  call handle_err(nf_put_att_text(ncid, temperature_id, "standard_name", 15, "air_temperature"))
-  call handle_err(nf_put_att_text(ncid, temperature_id, "long_name", 15, "air temperature"))
-  call handle_err(nf_put_att_text(ncid, temperature_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, temperature_id, "_FillValue", NF_REAL, 1, 999999.9))
+  ta_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'ta', 'air_temperature', &
+       'air temperature', metadata%temperature_unit, 999999.9)
 
-  call handle_err(nf_put_att_text(ncid, std_temperature_id, "standard_name", 37, "standard_deviation_of_air_temperature"))
-  call handle_err(nf_put_att_text(ncid, std_temperature_id, "long_name", 37, "standard deviation of air temperature"))
-  call handle_err(nf_put_att_text(ncid, std_temperature_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, std_temperature_id, "_FillValue", NF_REAL, 1, 9999.9))
+  std_ta_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'std_ta', 'standard_deviation_of_air_temperature', &
+       'standard deviation of air temperature', metadata%temperature_unit, 999999.9)
 
-  call handle_err(nf_put_att_text(ncid, rhov_id, "standard_name", 19, "water_vapor_density"))
-  call handle_err(nf_put_att_text(ncid, rhov_id, "long_name", 19, "water_vapor_density"))
-  call handle_err(nf_put_att_text(ncid, rhov_id, "units", len(metadata%temperature_unit), metadata%temperature_unit))
-  call handle_err(nf_put_att_real(ncid, rhov_id, "_FillValue", NF_REAL, 1, 999999.9))
+  rhov_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'rhov', 'water_vapor_density', &
+       'water vapor density', metadata%temperature_unit, 999999.9)
 
-  call handle_err(nf_put_att_text(ncid, std_rhov_id, "standard_name", 41, "standard_deviation_of_water_vapor_density"))
-  call handle_err(nf_put_att_text(ncid, std_rhov_id, "long_name", 41, "standard deviation of water vapor density"))
-  call handle_err(nf_put_att_text(ncid, std_rhov_id, "units", len(metadata%temperature_unit), metadata%rhov_unit))
-  call handle_err(nf_put_att_real(ncid, std_rhov_id, "_FillValue", NF_REAL, 1, 9999.9))
-  
+  std_rhov_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'std_rhov', 'standard_deviation_of_water_vapor_density', &
+       'standard deviation of water vapor density', metadata%temperature_unit, 9999.9)  
+
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "aircraft", len(trim(adjustl(metadata%aircraftname))), &
        trim(adjustl(metadata%aircraftname))))
 
@@ -539,16 +522,16 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
         std_rhov(i) = 9999.9
      endif
   enddo
- 
+
   call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), float(aircraftdata(1:no_of_measurements)%time)))
 
-  call handle_err(nf_put_vara(ncid, lat_id,                start, edge, lat))
-  call handle_err(nf_put_vara(ncid, lon_id,                start, edge, lon))
-  call handle_err(nf_put_vara(ncid, pressure_id,           start, edge, p))
-  call handle_err(nf_put_vara(ncid, temperature_id,        start, edge, ta))
-  call handle_err(nf_put_vara(ncid, std_temperature_id,    start, edge, std_ta))
-  call handle_err(nf_put_vara(ncid, rhov_id,               start, edge, rhov))
-  call handle_err(nf_put_vara(ncid, std_rhov_id,           start, edge, std_rhov))
+  call handle_err(nf_put_vara(ncid, lat_id,      start, edge, lat))
+  call handle_err(nf_put_vara(ncid, lon_id,      start, edge, lon))
+  call handle_err(nf_put_vara(ncid, p_id,        start, edge, p))
+  call handle_err(nf_put_vara(ncid, ta_id,       start, edge, ta))
+  call handle_err(nf_put_vara(ncid, std_ta_id,   start, edge, std_ta))
+  call handle_err(nf_put_vara(ncid, rhov_id,     start, edge, rhov))
+  call handle_err(nf_put_vara(ncid, std_rhov_id, start, edge, std_rhov))
 
   call handle_err(nf_close(ncid))
 
