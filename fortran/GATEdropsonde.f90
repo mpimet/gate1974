@@ -1,20 +1,9 @@
 #define FILENAME_LENGHT 132
 module GATEdropsonde_mod
 
-  type :: datetime
-     integer :: year
-     integer :: month
-     integer :: day
-     integer :: hour
-     integer :: minute
-     integer :: second
-  end type datetime
+  use GATE_metadata_mod
 
-  type :: position
-     integer :: deg
-     integer :: min
-     integer :: sec
-  end type position
+  integer, parameter :: no_of_levels_in_line = 19
 
   type :: GATE_dropsonde_type
      ! do not change the sequence within this type
@@ -33,30 +22,7 @@ module GATEdropsonde_mod
      real :: LONGITUDE
   end type GATE_dropsonde_type
 
-  integer, parameter :: no_of_levels_in_line = 19
-
-  type :: GATE_metadata_type
-
-     character(len=32) :: platform
-     integer           :: flight_id
-     type (datetime)   :: launch_time_start
-     type (datetime)   :: launch_time_end
-     type (position)   :: launch_lat_start      
-     type (position)   :: launch_lon_start     
-     type (position)   :: launch_lat_end      
-     type (position)   :: launch_lon_end      
-
-     character(len=2)  :: p_units='Pa'
-     character(len=1)  :: alt_units='m'
-     character(len=6)  :: t_units='kelvin'
-     character(len=5)  :: q_units='kg/kg'
-     character(len=1)  :: rh_units='%'
-     character(len=3)  :: wind_units='m/s' 
-     character(len=3)  :: winddir_units='deg' 
-
-  end type GATE_metadata_type
-
-  public :: GATE_dropsonde_type, GATE_metadate_type
+  public :: GATE_dropsonde_type
 
     contains
 
@@ -75,7 +41,6 @@ module GATEdropsonde_mod
       ! write ( * , * ) "dropsonde time", time, hours, minutes, seconds
 
     end subroutine dropsonde_time_converter
-
 
 end module GATEdropsonde_mod
 
@@ -195,27 +160,27 @@ subroutine convert_data (infile)
 
         if ( i == 4 ) then
            read(line(2:15),'(i4,5i2)')             &
-                metadata%launch_time_start%year,   &
-                metadata%launch_time_start%month,  &
-                metadata%launch_time_start%day,    &
-                metadata%launch_time_start%hour,   &
-                metadata%launch_time_start%minute, &
-                metadata%launch_time_start%second
+                metadata%time_start%year,   &
+                metadata%time_start%month,  &
+                metadata%time_start%day,    &
+                metadata%time_start%hour,   &
+                metadata%time_start%minute, &
+                metadata%time_start%second
            read(line(19:33),'(i3,2i2,i4,2i2)') &
-                metadata%launch_lat_start%deg, &
-                metadata%launch_lat_start%min, &
-                metadata%launch_lat_start%sec, &
-                metadata%launch_lon_start%deg, &
-                metadata%launch_lon_start%min, &
-                metadata%launch_lon_start%sec
-           if ( metadata%launch_lat_start%deg > 99  .or. &
-                metadata%launch_lat_start%min > 60  .or. &
-                metadata%launch_lat_start%sec > 60  .or. & 
-                metadata%launch_lon_start%deg > 999 .or. &
-                metadata%launch_lon_start%deg > 180 .or. &
-                metadata%launch_lon_start%deg < -180 .or. &
-                metadata%launch_lat_start%min > 60  .or. &
-                metadata%launch_lat_start%sec > 60 ) then
+                metadata%lat_start%deg, &
+                metadata%lat_start%min, &
+                metadata%lat_start%sec, &
+                metadata%lon_start%deg, &
+                metadata%lon_start%min, &
+                metadata%lon_start%sec
+           if ( metadata%lat_start%deg > 99  .or. &
+                metadata%lat_start%min > 60  .or. &
+                metadata%lat_start%sec > 60  .or. & 
+                metadata%lon_start%deg > 999 .or. &
+                metadata%lon_start%deg > 180 .or. &
+                metadata%lon_start%deg < -180 .or. &
+                metadata%lat_start%min > 60  .or. &
+                metadata%lat_start%sec > 60 ) then
                write ( * , * ) 'Faulty positions in file!'
                stop
            endif
@@ -224,19 +189,19 @@ subroutine convert_data (infile)
 
         if ( i == 5 ) then
            read(line(2:15),'(i4,5i2)')           &
-                metadata%launch_time_end%year,   &
-                metadata%launch_time_end%month,  &
-                metadata%launch_time_end%day,    &
-                metadata%launch_time_end%hour,   &
-                metadata%launch_time_end%minute, &
-                metadata%launch_time_end%second
+                metadata%time_end%year,   &
+                metadata%time_end%month,  &
+                metadata%time_end%day,    &
+                metadata%time_end%hour,   &
+                metadata%time_end%minute, &
+                metadata%time_end%second
            read(line(19:33),'(i3,2i2,i4,2i2)')   &
-                metadata%launch_lat_end%deg, &
-                metadata%launch_lat_end%min, &
-                metadata%launch_lat_end%sec, &
-                metadata%launch_lon_end%deg, &
-                metadata%launch_lon_end%min, &
-                metadata%launch_lon_end%sec
+                metadata%lat_end%deg, &
+                metadata%lat_end%min, &
+                metadata%lat_end%sec, &
+                metadata%lon_end%deg, &
+                metadata%lon_end%min, &
+                metadata%lon_end%sec
         end if
 
      case ( iostat_end )
@@ -331,11 +296,9 @@ end subroutine convert_data
 subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
 
   use GATEdropsonde_mod
-  use GATE_utils_mod
+  use GATE_netcdf_mod
 
   implicit none
-
-  include 'netcdf.inc'
 
   character(len=FILENAME_LENGHT), intent(in) :: infile
   integer,                     intent(in) :: no_of_levels
@@ -356,14 +319,14 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
   integer :: flight_time_id
   integer :: p_id
   integer :: alt_id
-  integer :: t_id
+  integer :: ta_id
   integer :: dew_id
   integer :: q_id
   integer :: rh_id
   integer :: u_id
   integer :: v_id
-  integer :: wdir_id
-  integer :: wspd_id
+  integer :: wd_id
+  integer :: ws_id
   integer :: lat_id, lon_id
 
   real    :: time(1)
@@ -391,28 +354,28 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                        &
-       & metadata%launch_time_start%year,   '-',  &
-       & metadata%launch_time_start%month,  '-',  &
-       & metadata%launch_time_start%day,    ' ',  &
-       & metadata%launch_time_start%hour,   ':',  &
-       & metadata%launch_time_start%minute, ':',  &
-       & metadata%launch_time_start%second
+       & metadata%time_start%year,   '-',  &
+       & metadata%time_start%month,  '-',  &
+       & metadata%time_start%day,    ' ',  &
+       & metadata%time_start%hour,   ':',  &
+       & metadata%time_start%minute, ':',  &
+       & metadata%time_start%second
 
-  position_start_lon = metadata%launch_lon_start%deg +      &
-       &             ( metadata%launch_lon_start%min * 60 + &
-       &               metadata%launch_lon_start%sec ) / 3600.0
+  position_start_lon = metadata%lon_start%deg +      &
+       &             ( metadata%lon_start%min * 60 + &
+       &               metadata%lon_start%sec ) / 3600.0
 
-  position_start_lat = metadata%launch_lat_start%deg +      &
-       &             ( metadata%launch_lat_start%min * 60 + &
-       &               metadata%launch_lat_start%sec ) / 3600.0
+  position_start_lat = metadata%lat_start%deg +      &
+       &             ( metadata%lat_start%min * 60 + &
+       &               metadata%lat_start%sec ) / 3600.0
 
-  position_end_lon = metadata%launch_lon_end%deg +      &
-       &           ( metadata%launch_lon_end%min * 60 + &
-       &             metadata%launch_lon_end%sec ) / 3600.0
+  position_end_lon = metadata%lon_end%deg +      &
+       &           ( metadata%lon_end%min * 60 + &
+       &             metadata%lon_end%sec ) / 3600.0
 
-  position_end_lat = metadata%launch_lat_end%deg +      &
-       &           ( metadata%launch_lat_end%min * 60 + &
-       &             metadata%launch_lat_end%sec ) / 3600.0
+  position_end_lat = metadata%lat_end%deg +      &
+       &           ( metadata%lat_end%min * 60 + &
+       &             metadata%lat_end%sec ) / 3600.0
 
   ! start writing
 
@@ -432,84 +395,52 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
   edge(2)  = 1
 
   call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), launch_time_id))
-
   call handle_err(nf_def_var(ncid, "flight_time", NF_FLOAT, ndims, dimids, flight_time_id))
-  call handle_err(nf_def_var(ncid, 'lat',         NF_FLOAT, ndims, dimids, lat_id))
-  call handle_err(nf_def_var(ncid, 'lon',         NF_FLOAT, ndims, dimids, lon_id))
-  call handle_err(nf_def_var(ncid, 'p',           NF_FLOAT, ndims, dimids, p_id))
-  call handle_err(nf_def_var(ncid, 'altitude',    NF_FLOAT, ndims, dimids, alt_id))
-  call handle_err(nf_def_var(ncid, "ta",          NF_FLOAT, ndims, dimids, t_id))
-  call handle_err(nf_def_var(ncid, "dew",         NF_FLOAT, ndims, dimids, dew_id))
-  call handle_err(nf_def_var(ncid, "q",           NF_FLOAT, ndims, dimids, q_id))
-  call handle_err(nf_def_var(ncid, "rh",          NF_FLOAT, ndims, dimids, rh_id))
-  call handle_err(nf_def_var(ncid, 'u',           NF_FLOAT, ndims, dimids, u_id))
-  call handle_err(nf_def_var(ncid, 'v',           NF_FLOAT, ndims, dimids, v_id))
-  call handle_err(nf_def_var(ncid, 'wdir',        NF_FLOAT, ndims, dimids, wdir_id))
-  call handle_err(nf_def_var(ncid, 'wspd',        NF_FLOAT, ndims, dimids, wspd_id))
 
   call handle_err(nf_put_att_text(ncid, launch_time_id, 'units', len(seconds_since), seconds_since))
+  call handle_err(nf_put_att_text(ncid, launch_time_id, "calendar", 19, "proleptic_gregorian"))
+
   call handle_err(nf_put_att_text(ncid, flight_time_id, 'units', len(seconds_since), seconds_since))
+  call handle_err(nf_put_att_text(ncid, flight_time_id, "calendar", 19, "proleptic_gregorian"))
 
-  call handle_err(nf_put_att_text(ncid, lat_id, "standard_name", 8, "latitude"))
-  call handle_err(nf_put_att_text(ncid, lat_id, "long_name", 8, "latitude"))
-  call handle_err(nf_put_att_text(ncid, lat_id, "units", 13, "degrees_north"))
-  call handle_err(nf_put_att_real(ncid, lat_id, "_FillValue", NF_REAL, 1, 999999.0))
+  lat_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lat', 'latitude', 'latitude', 'degrees_north', 999999.0)
 
-  call handle_err(nf_put_att_text(ncid, lon_id, "standard_name", 9, "longitude"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "long_name", 9, "longitude"))
-  call handle_err(nf_put_att_text(ncid, lon_id, "units", 12, "degrees_east"))
-  call handle_err(nf_put_att_real(ncid, lon_id, "_FillValue", NF_REAL, 1, 999999.0))
+  lon_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'lon', 'longitude', 'longitude', 'degrees_east', 999999.0)
 
-  call handle_err(nf_put_att_text(ncid, p_id, "standard_name", 12, "air_pressure"))
-  call handle_err(nf_put_att_text(ncid, p_id, "long_name", 12, "air pressure"))
-  call handle_err(nf_put_att_text(ncid, p_id, "units", len(metadata%p_units), metadata%p_units))
-  call handle_err(nf_put_att_real(ncid, p_id, "_FillValue", NF_REAL, 1, 999999.0))
+  p_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'p', 'air_pressure', &
+       'air pressure', metadata%pressure_unit, 999999.0)
 
-  call handle_err(nf_put_att_text(ncid, alt_id, "standard_name", 19, "geopotential_height"))
-  call handle_err(nf_put_att_text(ncid, alt_id, "long_name", 19, "geopotential height"))
+  alt_id = define_variable_and_attribute_real(ncid, dimids, 'altitude', 'geopotential_height', &
+       'geopotential height', metadata%altitude_unit, 999999.0)
   call handle_err(nf_put_att_text(ncid, alt_id, "positive", 2, "up"))
-  call handle_err(nf_put_att_text(ncid, alt_id, "units", len(metadata%alt_units), metadata%alt_units))
-  call handle_err(nf_put_att_real(ncid, alt_id, "_FillValue", NF_REAL, 1, 999999.0))
 
-  call handle_err(nf_put_att_text(ncid, t_id, "standard_name", 11, "temperature"))
-  call handle_err(nf_put_att_text(ncid, t_id, "long_name", 11, "temperature"))
-  call handle_err(nf_put_att_text(ncid, t_id, "units", len(metadata%t_units), metadata%t_units))
-  call handle_err(nf_put_att_real(ncid, t_id, "_FillValue", NF_REAL, 1, 9999.0))
+  ta_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'ta', 'temperature', 'temperature', metadata%temperature_unit, 9999.0)
 
-  call handle_err(nf_put_att_text(ncid, dew_id, "standard_name", 21, "dew_point_temperature"))
-  call handle_err(nf_put_att_text(ncid, dew_id, "long_name", 21, "dew point temperature"))
-  call handle_err(nf_put_att_text(ncid, dew_id, "units", len(metadata%t_units), metadata%t_units))
-  call handle_err(nf_put_att_real(ncid, dew_id, "_FillValue", NF_REAL, 1, 9999.0))
+  dew_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'dew', 'dew_point_temperature', &
+       'dew point temperature', metadata%temperature_unit, 9999.0)
 
-  call handle_err(nf_put_att_text(ncid, q_id, "standard_name", 17, "specific_humidity"))
-  call handle_err(nf_put_att_text(ncid, q_id, "long_name", 17, "specific humidity"))
-  call handle_err(nf_put_att_text(ncid, q_id, "units", len(metadata%q_units), metadata%q_units))
-  call handle_err(nf_put_att_real(ncid, q_id, "_FillValue", NF_REAL, 1, 99.0))
+  q_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%specific_humidity_unit, 99.0)
 
-  call handle_err(nf_put_att_text(ncid, rh_id, "standard_name", 17, "relative_humidity"))
-  call handle_err(nf_put_att_text(ncid, rh_id, "long_name", 17, "relative humidity"))
-  call handle_err(nf_put_att_text(ncid, rh_id, "units", len(metadata%rh_units), metadata%rh_units))
-  call handle_err(nf_put_att_real(ncid, rh_id, "_FillValue", NF_REAL, 1, 99.0))
+  rh_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'rh', 'relative_humidity', 'relative humidity', metadata%relative_humidity_unit, 99.0)
 
-  call handle_err(nf_put_att_text(ncid, u_id, "standard_name", 13, "eastward_wind"))
-  call handle_err(nf_put_att_text(ncid, u_id, "long_name", 13, "eastward wind"))
-  call handle_err(nf_put_att_text(ncid, u_id, "units", len(metadata%wind_units), metadata%wind_units))
-  call handle_err(nf_put_att_real(ncid, u_id, "_FillValue", NF_REAL, 1, 999.0))
+  u_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'u', 'eastward_wind', 'eastward wind', metadata%wind_unit, 999.0 )
 
-  call handle_err(nf_put_att_text(ncid, v_id, "standard_name", 14, "northward_wind"))
-  call handle_err(nf_put_att_text(ncid, v_id, "long_name", 14, "northward wind"))
-  call handle_err(nf_put_att_text(ncid, v_id, "units", len(metadata%wind_units), metadata%wind_units))
-  call handle_err(nf_put_att_real(ncid, v_id, "_FillValue", NF_REAL, 1, 999.0))
+  v_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'v', 'northward_wind', 'northward wind', metadata%wind_unit, 999.0)
 
-  call handle_err(nf_put_att_text(ncid, wspd_id, "standard_name", 10, "wind_speed"))
-  call handle_err(nf_put_att_text(ncid, wspd_id, "lomg_name", 10, "wind speed"))
-  call handle_err(nf_put_att_text(ncid, wspd_id, "units", len(metadata%wind_units), metadata%wind_units))
-  call handle_err(nf_put_att_real(ncid, wspd_id, "_FillValue", NF_REAL, 1, 999.0))
+  wd_id =  define_variable_and_attribute_real( &
+       ncid, dimids, 'ws', 'wind_speed', 'wind speed', metadata%wind_unit, 999.0)
 
-  call handle_err(nf_put_att_text(ncid, wdir_id, "standard_name", 20, "wind_from_direction"))
-  call handle_err(nf_put_att_text(ncid, wdir_id, "lomg_name", 20, "wind from direction"))
-  call handle_err(nf_put_att_text(ncid, wdir_id, "units", len(metadata%winddir_units), metadata%winddir_units))
-  call handle_err(nf_put_att_real(ncid, wdir_id, "_FillValue", NF_REAL, 1, 999.0))
+  ws_id =  define_variable_and_attribute_real( &
+       ncid, dimids, 'wd', 'wind_from_direction', 'wind from direction', metadata%wind_dir_unit, 999.0)
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
        trim(adjustl(metadata%platform))))
@@ -594,14 +525,14 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
   call handle_err(nf_put_vara(ncid, lon_id,         start, edge, lon))
   call handle_err(nf_put_vara(ncid, p_id,           start, edge, p))
   call handle_err(nf_put_vara(ncid, alt_id,         start, edge, altitude))
-  call handle_err(nf_put_vara(ncid, t_id,           start, edge, ta))
+  call handle_err(nf_put_vara(ncid, ta_id,          start, edge, ta))
   call handle_err(nf_put_vara(ncid, dew_id,         start, edge, dew))
   call handle_err(nf_put_vara(ncid, q_id,           start, edge, q))
   call handle_err(nf_put_vara(ncid, rh_id,          start, edge, rh))
   call handle_err(nf_put_vara(ncid, u_id,           start, edge, u))
   call handle_err(nf_put_vara(ncid, v_id,           start, edge, v))
-  call handle_err(nf_put_vara(ncid, wdir_id,        start, edge, wdir))
-  call handle_err(nf_put_vara(ncid, wspd_id,        start, edge, wspd))
+  call handle_err(nf_put_vara(ncid, wd_id,          start, edge, wdir))
+  call handle_err(nf_put_vara(ncid, ws_id,          start, edge, wspd))
 
   call handle_err(nf_close(ncid))
 
