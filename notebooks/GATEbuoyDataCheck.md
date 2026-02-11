@@ -28,15 +28,16 @@ from termcolor import colored
 
 ```python
 if platform.node() == "Lotsawa.local":
-    rootpath="/Users/m300083/Projekte/GATE_v3.1/BUOY/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2/BUOY/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.1/BUOY/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2/BUOY/"
 
 cdo = Cdo(tempdir=rootpath+'tmp')
 cdo.env = {"SKIP_SAME_TIME": "1"}
 
 path=rootpath+"METEOR"; PLATFORM="Meteor Buoy"; INTERVALL=""
+#path=rootpath+"HYDROGRAPHIC_SHIP"; PLATFORM="UK Hydrographic Ship Buoy"; INTERVALL=""
 
 list=path+"/*"+INTERVALL+".nc"
 files = sorted(glob.glob(f"{list}"))

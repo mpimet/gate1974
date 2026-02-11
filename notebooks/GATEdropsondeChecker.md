@@ -28,10 +28,10 @@ import cartopy.crs as ccrs
 
 ```python
 if platform.node() == "Lotsawa.local":
-    rootpath="/Users/m300083/Projekte/GATE_v3.1/AIRCRAFT/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2/AIRCRAFT/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.1/AIRCRAFT/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2/AIRCRAFT/"
 
 path=rootpath+"C130_DROPSONDE"; PLATFORM="C130"; INTERVALL=""
 #path=rootpath+"C135_DROPSONDE"; PLATFORM="C135"; INTERVALL=""

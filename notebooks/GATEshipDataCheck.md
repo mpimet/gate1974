@@ -32,10 +32,10 @@ from termcolor import colored
 
 ```python
 if platform.node()[:7] == "Lotsawa":
-    rootpath="/Users/m300083/Projekte/GATE_v3.1/DSHIP/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2/DSHIP/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.1/DSHIP/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2/DSHIP/"
 
 Cdo.env = {"SKIP_SAME_TIME": "1"}
 cdo = Cdo(tempdir=rootpath+'tmp')

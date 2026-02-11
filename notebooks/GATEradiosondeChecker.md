@@ -25,10 +25,10 @@ from cdo import *
 
 ```python
 if platform.node() == "Lotsawa.local":
-    rootpath="/Users/m300083/Projekte/GATE_v3.1/RADIOSONDE/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2/RADIOSONDE/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.1/RADIOSONDE/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2/RADIOSONDE/"
 
 cdo = Cdo(tempdir=rootpath+'tmp')
 

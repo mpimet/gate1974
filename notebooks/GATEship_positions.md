@@ -39,10 +39,10 @@ from collections import defaultdict
 
 ```python
 if platform.node()[:7] == "Lotsawa" :
-    rootpath="/Users/m300083/Projekte/GATE_v3.1/DSHIP/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2/DSHIP/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.1/DSHIP/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2/DSHIP/"
 
 DALLAS     = glob.glob(rootpath+'DALLAS/*.nc')
 FAY        = glob.glob(rootpath+'FAY/*.nc')

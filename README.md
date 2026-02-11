@@ -4,7 +4,9 @@
 
 *René Redler, Max Planck Institute for Meteorology, Hamburg*
 
-**Last updated: 9 February 2026**
+**Last updated: 13 February 2026**
+
+**Version 3.2**
 
 ---
 
