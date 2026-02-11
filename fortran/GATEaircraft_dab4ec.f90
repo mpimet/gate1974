@@ -394,7 +394,7 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   write ( * , * ) trim(infile), ':'
   write ( * , * ) seconds_since
-  write ( outfile, '(A,A1,I0.3,A1,A3)' ) trim(infile), '_', int(metadata%interval), metadata%interval_unit, '.nc'
+  write ( outfile, '(A,A1,I0.3,A1,A3)' ) trim(infile), '_', metadata%interval, metadata%interval_unit, '.nc'
   write ( * , * ) " - ", trim(adjustl(metadata%aircraftname))
 
   call handle_err(nf_create( outfile, NF_CLOBBER, ncid))
@@ -423,6 +423,10 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
        ncid, dimids, 'p', 'air_pressure', &
        'air pressure', metadata%pressure_unit, 999999.9)
 
+  alt_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'z', 'altitude', &
+       'altitude', metadata%altitude_unit, 9999.0)
+
   ta1_id = define_variable_and_attribute_real( &
        ncid, dimids, 'ta', 'air_temperature', &
        'air temperature', metadata%temperature_unit, 999.9)
@@ -431,18 +435,13 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
        ncid, dimids, 'ta_2', 'air_temperature', &
        'air temperature', metadata%temperature_unit, 999.9)
 
-  q_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'q', 'specific_humidity', &
-       'specific humidity', metadata%specific_humidity_unit, 999.9)
-
   dew_id = define_variable_and_attribute_real( &
        ncid, dimids, 'dew', 'dew_point_temperature', &
        'dew point temperature', metadata%temperature_unit, 999.9)
 
-
-  alt_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'z', 'altitude', &
-       'altitude', metadata%altitude_unit, 9999.0)
+  q_id = define_variable_and_attribute_real( &
+       ncid, dimids, 'q', 'specific_humidity', &
+       'specific humidity', metadata%specific_humidity_unit, 999.9)
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "aircraft", len(trim(adjustl(metadata%aircraftname))), &
        trim(adjustl(metadata%aircraftname))))
@@ -473,7 +472,6 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
         ta_2(i) = aircraftdata(i)%temperature2 + 273.15
      endif
      ! write ( * , * ) aircraftdata(i)%time, p(i)
-
   enddo
 
   call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), aircraftdata(1:no_of_measurements)%time))

@@ -137,7 +137,6 @@ subroutine convert_data (infile)
   type (GATE_metadata_type) :: metadata
 
   real    :: interval
-
   integer :: ierror = 0
   integer :: iostat = 0
   integer :: no_of_measurement
@@ -274,7 +273,6 @@ subroutine convert_data (infile)
 
         do i = 1, no_of_records_in_line
 
-           ! write ( * , * ) flightdata(i)%time, flightdata(i)%latitude, flightdata(i)%longitude
            ! handle only usable records
            if ( abs(flightdata(i)%latitude  ) <  90.0 .AND. &
                 abs(flightdata(i)%longitude ) < 180.0 .AND. &
@@ -289,7 +287,7 @@ subroutine convert_data (infile)
                   write ( * , * ) "WARNING for time ", &
                                    aircraftdata(i)%time, hour, minute, second, &
                                    flightTime(i), flightTimePrev
-              endif
+              end if
 
               ! furthermore skip non-monotonic times
               if ( flightTime(i) > flightTimePrev .and. flightTime(i) > startTime ) then 
@@ -443,7 +441,7 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
        'dew point temperature', metadata%temperature_unit, 999.9)
 
   q_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'dew', 'specific_humidity', &
+       ncid, dimids, 'q', 'specific_humidity', &
        'specific humidity', metadata%specific_humidity_unit, 999.9)
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "aircraft", len(trim(adjustl(metadata%aircraftname))), &
@@ -476,7 +474,7 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
      endif
      ! write ( * , * ) aircraftdata(i)%time, p(i)
   enddo
-  
+
   call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), aircraftdata(1:no_of_measurements)%time))
 
   call handle_err(nf_put_vara(ncid, lat_id, start, edge, aircraftdata(1:no_of_measurements)%latitude))

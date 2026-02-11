@@ -341,7 +341,7 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   integer :: measurement_time_id
   integer :: measurement_id, timer_id
   integer :: lat_id, lon_id
-  integer :: p_id,    std_p_id
+  integer :: p_id,   std_p_id
   integer :: ta_id,  std_ta_id
   integer :: dew_id, std_dew_id
 
@@ -445,13 +445,13 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   do i = 1, no_of_measurements
 
-     if ( aircraftdata(i)%pressure == 9999.9 ) then
+     if ( aircraftdata(i)%pressure > 9999.0 ) then
         p(i) = 999999.9
      else
         p(i) = aircraftdata(i)%pressure * 100.0
      endif
 
-     if ( aircraftdata(i)%std_pressure == 99.99 ) then
+     if ( aircraftdata(i)%std_pressure > 99.90 ) then
         std_p(i) = 9999.99
      else
         std_p(i) = aircraftdata(i)%std_pressure * 100.0
