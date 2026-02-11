@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
 
 #include "GATEutils.h"
 #include "GATEmetadata.h"
@@ -63,7 +64,7 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
                 metadata.time_start.minute = std::stoi(line.substr(11, 2));
                 metadata.time_start.second = std::stoi(line.substr(13, 2));
 
-		metadata.lat_start.deg = std::stoi(line.substr(19, 2));
+                metadata.lat_start.deg = std::stoi(line.substr(19, 2));
                 metadata.lat_start.min = std::stoi(line.substr(21, 2));
                 metadata.lat_start.sec = std::stoi(line.substr(23, 2));
                 metadata.lon_start.deg = std::stoi(line.substr(25, 4));
@@ -120,84 +121,89 @@ void convert_data(const std::string& infile) {
 
     // Start with data section
     while (ierror == 0) {
-        std::string record_lines;
-        for (int i = 0; i < 24; ++i) {
-            std::getline(file, line);
-            if (file.eof()) {
-                ierror = 1;
-                break;
-            }
-            record_lines += line;
+      std::string record_lines;
+      for (int i = 0; i < 24; ++i) {
+        std::getline(file, line);
+        if (file.eof()) {
+          ierror = 1;
+          break;
         }
-        record_lines += "\n";
+        record_lines += line;
+      }
+      record_lines += "\n";
 
-        if (ierror != 0) break;
+      if (ierror != 0) break;
 
-        int type_id, records_in_line, records_handled, line_number;
+      int type_id, records_in_line, records_handled, line_number;
 
-        constexpr int BUOY_DATA_IN_LINE = 25;
+      constexpr int BUOY_DATA_IN_LINE = 25;
 
-        std::vector<GATE_buoy_type> buoydata(BUOY_DATA_IN_LINE);
+      std::vector<GATE_buoy_type> buoydata(BUOY_DATA_IN_LINE);
 
-        std::vector<float> buoy_time[BUOY_DATA_IN_LINE];
+      std::vector<float> buoy_time[BUOY_DATA_IN_LINE];
 
-        std::sscanf(record_lines.c_str(), "%1d %4d %10d %5d",
-		    &type_id,
-                    &records_in_line,
-                    &records_handled,
-                    &line_number);
+      std::sscanf(record_lines.c_str(), "%1d %4d %10d %5d",
+                  &type_id,
+                  &records_in_line,
+                  &records_handled,
+                  &line_number);
 
-        const char *ptr = record_lines.c_str() + 20;
+      const char *ptr = record_lines.c_str() + 20;
 
-        const char* const format = "%10f %5f %7f %4f %7f %4f %9f %4f %9f %4f %9f %4f";
-        const int RECORD_WIDTH = calculate_record_width(format);
+      const char* const format = "%10f %5f %7f %4f %7f %4f %9f %4f %9f %4f %9f %4f";
+      const int RECORD_WIDTH = calculate_record_width(format);
 
-	for (int i = 0; i < BUOY_DATA_IN_LINE; i++) {
-	  std::sscanf(ptr,
-		      format,
-		      &buoydata[i].time,
-		      &buoydata[i].day,
-		      &buoydata[i].wind_speed,
-		      &buoydata[i].val_wind_speed,
-		      &buoydata[i].wind_direction,
-		      &buoydata[i].val_wind_direction,
-		      &buoydata[i].dry_bulb_temp,
-		      &buoydata[i].val_dry_bulb_temp,
-		      &buoydata[i].spec_humidity,
-		      &buoydata[i].val_spec_humidity,
-		      &buoydata[i].water_temperature,
-		      &buoydata[i].val_water_temperature);
+      for (int i = 0; i < BUOY_DATA_IN_LINE; i++) {
+	std::sscanf(ptr,
+                    format,
+                    &buoydata[i].time,
+                    &buoydata[i].day,
+                    &buoydata[i].wind_speed,
+                    &buoydata[i].val_wind_speed,
+                    &buoydata[i].wind_direction,
+                    &buoydata[i].val_wind_direction,
+                    &buoydata[i].dry_bulb_temp,
+                    &buoydata[i].val_dry_bulb_temp,
+                    &buoydata[i].spec_humidity,
+                    &buoydata[i].val_spec_humidity,
+                    &buoydata[i].water_temperature,
+                    &buoydata[i].val_water_temperature);
 
-	  ptr += RECORD_WIDTH;
-	}
+	ptr += RECORD_WIDTH;
+      }
 
-        for (int i = 0; i < BUOY_DATA_IN_LINE; ++i) {
-            if (std::abs(buoydata[i].time) < 99.0) {
-                int year, month, day;
-                date_converter(static_cast<int>(std::round(buoydata[i].day)), metadata.time_start.month, year, month, day);
+      for (int i = 0; i < BUOY_DATA_IN_LINE; ++i) {
+        if (std::abs(buoydata[i].time) < 99.0) {
+          int year, month, day;
+          date_converter(static_cast<int>(std::round(buoydata[i].day)), metadata.time_start.month, year, month, day);
 
-                int hours, minutes, seconds;
-                time_converter(buoydata[i].time, hours, minutes, seconds);
+          int hours, minutes, seconds;
+          time_converter(buoydata[i].time, hours, minutes, seconds);
 
-                int days = days_between(year, month, day,
-                                        metadata.time_start.year,
-                                        metadata.time_start.month,
-                                        metadata.time_start.day);
+          int days = days_between(year, month, day,
+                                  metadata.time_start.year,
+                                  metadata.time_start.month,
+                                  metadata.time_start.day);
 
-                int buoyTime = days * 86400 + hours * 3600 + minutes * 60 + seconds;
+          int buoyTime = days * 86400 + hours * 3600 + minutes * 60 + seconds;
+          buoydata[i].time = static_cast<float>(buoyTime);
 
-                if (no_of_measurement > 0 && buoyTime <= static_cast<int>(dbuoydata[no_of_measurement].time)) {
-                    std::cout << "WARNING for time: " << static_cast<int>(std::round(buoydata[i].day)) << " "
-                              << int(buoydata[i].time) << " " << days << " "
-                              << hours << ":" << minutes << ":" << seconds << " "
-                              << buoyTime << " " << int(dbuoydata[no_of_measurement].time) << std::endl;
-                } else {
-                    buoydata[i].time = static_cast<float>(buoyTime);
-                    no_of_measurement++;
-                    dbuoydata.push_back(buoydata[i]);
-                }
-            }
+          if ( no_of_measurement == 0 ) {
+            no_of_measurement++;
+            dbuoydata.push_back(buoydata[i]);
+          }
+
+          if (no_of_measurement > 0 && buoyTime > static_cast<int>(dbuoydata[no_of_measurement-1].time)) {
+            no_of_measurement++;
+            dbuoydata.push_back(buoydata[i]);
+          } else {
+            std::cout << "WARNING for time: " << static_cast<int>(std::round(buoydata[i].day)) << " "
+                      << int(buoydata[i].time) << " " << days << " "
+                      << hours << ":" << minutes << ":" << seconds << " "
+                      << buoyTime << " " << int(dbuoydata[no_of_measurement].time) << std::endl;
+          }
         }
+      }
     }
 
     file.close();

@@ -1,11 +1,11 @@
 #ifndef GATE_WRITE_BUOY_HYDRO_H
 #define GATE_WRITE_BUOY_HYDRO_H
 
-#include <netcdf>
 #include <string>
 #include <vector>
 #include <ctime>
 #include <sstream>
+#include <netcdf.h>
 #include "GATEmetadata.h"
 #include "GATEbuoy_hydro.h"
 

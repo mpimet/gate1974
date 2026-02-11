@@ -1,0 +1,57 @@
+# Makefile for compiling GATEbuoy_meteor and GATEandCOMM_SHIPS/sw/bullseye-x64/packages/gcc-14.2.0/netcdf-c-4.9.2
+
+# Compiler
+CXX = g++
+
+# Include and library paths for NetCDF
+NETCDF_ROOT=/sw/bullseye-x64/packages/gcc-14.2.0/netcdf-c-4.9.2
+NETCDF_INCLUDE=${NETCDF_ROOT}/include
+NETCDF_LIB=${NETCDF_ROOT}/lib
+
+# Compiler flags
+CXXFLAGS = -std=c++17 -Wall -Wextra -I${NETCDF_INCLUDE}
+LDFLAGS = -L${NETCDF_LIB} -lnetcdf -Wl,-rpath,${NETCDF_LIB}
+
+# Main program source files (contain main())
+MAIN_SRCS = GATEbuoy_meteor.cpp GATEbuoy_hydro.cpp GATEandCOMM_SHIPS.cpp
+
+# Library source files (contain functions only)
+LIB_SRCS = GATEdate_time.cpp GATEwrite_buoy_meteor.cpp GATEwrite_comm_ships.cpp GATEwrite_buoy_hydro.cpp GATEutils.cpp
+
+# Object files
+MAIN_OBJS = $(MAIN_SRCS:.cpp=.o)
+LIB_OBJS = $(LIB_SRCS:.cpp=.o)
+
+# Output executables (no .exe suffix unless needed)
+EXECUTABLES = $(MAIN_SRCS:.cpp=)
+
+# Explicit dependency: each executable depends on its own .o and the library objects
+$(EXECUTABLES): $(LIB_OBJS)
+
+# Define individual rules for each executable
+GATEbuoy_meteor: GATEbuoy_meteor.o $(LIB_OBJS)
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+GATEbuoy_hydro: GATEbuoy_hydro.o $(LIB_OBJS)
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+GATEandCOMM_SHIPS: GATEandCOMM_SHIPS.o $(LIB_OBJS)
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+# Pattern rule for linking executables (fallback)
+%: %.o $(LIB_OBJS)
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+# Pattern rule for compiling source files
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Clean the build
+clean:
+	rm -f $(MAIN_OBJS) $(LIB_OBJS) $(EXECUTABLES)
+
+# Default target
+all: $(EXECUTABLES)
+
+.PHONY: all clean
+

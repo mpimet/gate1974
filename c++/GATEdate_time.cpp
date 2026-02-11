@@ -1,4 +1,7 @@
 #include <string>
+#include <cmath>
+#include <iostream>
+
 #include "GATEdate_time.h"
 
 void date_converter(float date, int initial_month, int& year, int& month, int& day) {
@@ -58,24 +61,3 @@ int date_to_days(int year, int month, int day) {
 int days_between(int year1, int month1, int day1, int year2, int month2, int day2) {
     return date_to_days(year1, month1, day1) - date_to_days(year2, month2, day2);
 }
-
-void day_of_year_converter(int year, int julian_day, int& month, int& day) {
-
-    int days = 0;
-    int m = 0;
-    
-    // Find which month contains the julian_day
-    while (m < 12 && days + month_days[m] < julian_day) {
-        if (is_leap_year(year) && m == 1) {
-          days += 29;
-        } else {
-          days += month_days[m];
-        }
-        m++;
-    }
-    
-    // Set output parameters
-    month = m + 1;            // Convert from 0-based to 1-based indexing
-    day = julian_day - days;  // Day within the month
-};
-

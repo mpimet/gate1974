@@ -69,6 +69,7 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
                 metadata.lon_start.deg = std::stoi(line.substr(25, 4));
                 metadata.lon_start.min = std::stoi(line.substr(29, 2));
                 metadata.lon_start.sec = std::stoi(line.substr(31, 2));
+
                 break;
             case 5:
                 metadata.time_end.year   = std::stoi(line.substr(1, 4));
@@ -87,7 +88,7 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
 
                 break;
             case 7:
-                metadata.interval = std::stoi(line.substr(16, 9));
+                metadata.interval      = std::stoi(line.substr(16, 9));
                 metadata.interval_unit = line[25];
                 break;
         }
@@ -121,12 +122,12 @@ void convert_data(const std::string& infile) {
     while (ierror == 0) {
       std::string record_lines;
       for (int i = 0; i < 24; ++i) {
-	std::getline(file, line);
-	if (file.eof()) {
-	  ierror = 1;
-	  break;
-	}
-	record_lines += line;
+        std::getline(file, line);
+        if (file.eof()) {
+          ierror = 1;
+          break;
+        }
+        record_lines += line;
       }
       record_lines += "\n";
 
@@ -141,10 +142,10 @@ void convert_data(const std::string& infile) {
       std::vector<float> buoy_time[BUOY_DATA_IN_LINE];
 
       std::sscanf(record_lines.c_str(), "%1d %4d %10d %5d",
-		  &type_id,
-		  &records_in_line,
-		  &records_handled,
-		  &line_number);
+                  &type_id,
+                  &records_in_line,
+                  &records_handled,
+                  &line_number);
 
       const char *ptr = record_lines.c_str() + 20;
 
@@ -173,67 +174,61 @@ void convert_data(const std::string& infile) {
       for (int i = 0; i < BUOY_DATA_IN_LINE; i++)
         {
 	  std::sscanf(ptr, "%4d", &buoydata[i].sequence);
-	  ptr += 4;
+          ptr += 4;
 
-	  std::sscanf(ptr, "%5c", buoydata[i].quality);
-	  buoydata[i].quality[5]='\0'; 
-	  ptr += 5;
+          std::sscanf(ptr, "%5c", buoydata[i].quality);
+          buoydata[i].quality[5]='\0'; 
+          ptr += 5;
 
-	  char temp[4];
-	  std::sscanf(ptr, "%4c",temp);
-	  buoydata[i].julian_day = atoi(temp);
-	  ptr += 4;
+          char temp[4];
+          std::sscanf(ptr, "%4c",temp);
+          buoydata[i].julian_day = atoi(temp);
+          ptr += 4;
 
-	  std::sscanf(ptr, "%4c", buoydata[i].time);
-	  buoydata[i].time[4]='\0'; 
-	  ptr += 4;
+          std::sscanf(ptr, "%4c", buoydata[i].time);
+          buoydata[i].time[4]='\0'; 
+          ptr += 4;
 
-	  std::sscanf(ptr, "%4i", &buoydata[i].wind_direction);
-	  ptr += 4;
+          std::sscanf(ptr, "%4i", &buoydata[i].wind_direction);
+          ptr += 4;
 
-	  std::sscanf(ptr, "%6f", &buoydata[i].wind_speed);
-	  ptr += 6;
+          std::sscanf(ptr, "%6f", &buoydata[i].wind_speed);
+          ptr += 6;
 
-	  std::sscanf(ptr, "%6f", &buoydata[i].dry_bulb_temperature);
-	  ptr += 6;
+          std::sscanf(ptr, "%6f", &buoydata[i].dry_bulb_temperature);
+          ptr += 6;
 
-	  std::sscanf(ptr, "%8f", &buoydata[i].sea_level_pressure);
-	  ptr += 8;
+          std::sscanf(ptr, "%8f", &buoydata[i].sea_level_pressure);
+          ptr += 8;
 
-	  buoydata[i].val_time                 = atoi(&buoydata[i].quality[0]);
-	  buoydata[i].val_wind_direction       = atoi(&buoydata[i].quality[1]);
-	  buoydata[i].val_wind_speed           = atoi(&buoydata[i].quality[2]);
-	  buoydata[i].val_dry_bulb_temperature = atoi(&buoydata[i].quality[3]);
+          buoydata[i].val_time                 = atoi(&buoydata[i].quality[0]);
+          buoydata[i].val_wind_direction       = atoi(&buoydata[i].quality[1]);
+          buoydata[i].val_wind_speed           = atoi(&buoydata[i].quality[2]);
+          buoydata[i].val_dry_bulb_temperature = atoi(&buoydata[i].quality[3]);
           buoydata[i].val_sea_level_pressure   = atoi(&buoydata[i].quality[4]);
       }
-
       for (int i = 0; i < BUOY_DATA_IN_LINE; ++i) {
-	if ( buoydata[i].val_time == 0 ) {
-	  int month, day;
-	  day_of_year_converter(metadata.time_start.year, buoydata[i].julian_day, month, day);
+        if ( buoydata[i].val_time == 0 ) {
 
-	  int days = days_between(metadata.time_start.year, month, day,
-				  metadata.time_start.year,
-				  metadata.time_start.month,
-				  metadata.time_start.day);
+          // Extract hour and minute from time string
+          int hours = 0, minutes = 0, seconds = 0;
+          sscanf(buoydata[i].time, "%2d%2d", &hours, &minutes);
+          int buoyTime = buoydata[i].julian_day * 86400 + hours * 3600 + minutes * 60 + seconds;
+          buoydata[i].seconds_of_year = buoyTime;
 
-	  // Extract hour and minute from time string
-	  int hours = 0, minutes = 0, seconds = 0;
-	  sscanf(buoydata[i].time, "%2d%2d", &hours, &minutes);
-
-	  int buoyTime = days * 86400 + hours * 3600 + minutes * 60 + seconds;
-
-	  if (no_of_measurement > 0 && buoyTime <= dbuoydata[no_of_measurement].seconds_of_year) {
-	    std::cout << "WARNING for time: " << buoydata[i].julian_day << " "
-		      << buoydata[i].seconds_of_year << " " << days << " "
-		      << hours << ":" << minutes << ":" << seconds << " "
-		      << buoyTime << " " << dbuoydata[no_of_measurement].seconds_of_year << std::endl;
-	  } else {
-	      buoydata[i].seconds_of_year = buoyTime;
-	      no_of_measurement++;
-	      dbuoydata.push_back(buoydata[i]);
-	  }
-	}
+          if ( no_of_measurement == 0 ) {
+            no_of_measurement++;
+            dbuoydata.push_back(buoydata[i]);
+          }
+          if ( no_of_measurement > 0 && buoyTime > dbuoydata[no_of_measurement-1].seconds_of_year ) {
+            no_of_measurement++;
+            dbuoydata.push_back(buoydata[i]);
+          } else {
+            std::cout << "WARNING for time: " << buoydata[i].julian_day << " "
+                      << hours << ":" << minutes << ":" << seconds << " "
+                      << buoyTime << " " << std::endl;
+          }
+        }
       }
     }
 

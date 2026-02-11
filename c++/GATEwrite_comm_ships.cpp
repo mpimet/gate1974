@@ -1,6 +1,7 @@
-#include <netcdf>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <netcdf.h>
 #include "GATEnetcdf.h"
 #include "GATEmetadata.h"
 #include "GATEwrite_comm_ships.h"

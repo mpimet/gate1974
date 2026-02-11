@@ -1,8 +1,9 @@
 #ifndef GATE_NETCDF_H
 #define GATE_NETCDF_H
 
-#include <netcdf>
+#include <optional>
 #include <iostream>
+#include <netcdf.h>
 
 inline void handle_err(int status) {
     if (status != NC_NOERR) {

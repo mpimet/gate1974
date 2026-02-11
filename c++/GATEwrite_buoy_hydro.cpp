@@ -1,6 +1,6 @@
-#include <netcdf>
 #include <string>
 #include <vector>
+#include <netcdf.h>
 #include "GATEnetcdf.h"
 #include "GATEmetadata.h"
 #include "GATEwrite_buoy_hydro.h"
@@ -16,8 +16,8 @@ void write_netcdf_buoy_hydro(const std::string &infile,
 
     std::ostringstream seconds_since_stream;
     seconds_since_stream << "seconds since " << metadata.time_start.year
-                         << '-' << metadata.time_start.month
-                         << '-' << metadata.time_start.day
+                         << '-' << 1 // metadata.time_start.month
+                         << '-' << 1 // metadata.time_start.day
                          << ' ' << 0
                          << ':' << 0
                          << ':' << 0;
@@ -38,7 +38,7 @@ void write_netcdf_buoy_hydro(const std::string &infile,
     int ncid;
     int dimids[2];
     int time_id, measurement_id, timelenght_id;
-    int ws_id, wd_id, dbt_id, psl_id, sst_id;
+    int ws_id, wd_id, dbt_id, psl_id;
 
     const float fill_value_999 = 999.9f;
 
