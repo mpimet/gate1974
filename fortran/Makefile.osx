@@ -13,7 +13,7 @@ LDFLAGS=-L${NETCDF_LIB} -lnetcdf -L${NETCDFF_LIB} -lnetcdff
 
 SOURCES = $(wildcard *.f90)
 
-MODULES = GATE_metadata_mod GATE_utils_mod GATEaircraft_time_mod
+MODULES = GATE_netcdf_mod GATE_metadata_mod GATEaircraft_time_mod
 MODULE_OBJECTS = $(MODULES:=.o)
 MODULE_MODS = $(MODULES:=.mod)
 

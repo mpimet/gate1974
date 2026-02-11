@@ -15,7 +15,7 @@ LDFLAGS=-Wl,-rpath=${NETCDFF_ROOT}/lib -Wl,-rpath=${NETCDF_ROOT}/lib -L${NETCDF_
 SOURCES := $(wildcard *.f90)
 
 # Define modules explicitly
-MODULES := GATE_netcdf_mod GATE_metadata_mod GATE_utils_mod GATEaircraft_time_mod
+MODULES := GATE_netcdf_mod GATE_metadata_mod GATEaircraft_time_mod
 
 # Identify programs
 PROGRAMS := $(filter-out $(addsuffix .f90, $(MODULES)), $(SOURCES))
