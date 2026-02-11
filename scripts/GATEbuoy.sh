@@ -1,4 +1,5 @@
-#!/opt/homebrew/bin/bash
+##!/opt/homebrew/bin/bash
+#!/usr/bin/bash
 
 # Check if Bash version is 4 or later
 if [ ${BASH_VERSION:0:1} -lt 4 ]; then
@@ -13,6 +14,7 @@ thisdir=$(pwd)
 declare -A ship_dirs
 ship_dirs[METEORa]="BUOY/METEOR/dbb905"
 ship_dirs[METEORb]="BUOY/METEOR/dfb619"
+ship_dirs[HYDRO]="BUOY/HYDROGRAPHIC_SHIP/0a0817"
 
 # Function to perform the data conversion
 process_platform() {
@@ -25,7 +27,11 @@ process_platform() {
   cp ${in_path}/* .
   for infile in `ls -1`; do
     pwd
-    ${thisdir}/GATEbuoy_meteor.x $infile
+    if [ "$ship" = "HYDRO" ]; then
+      ${thisdir}/GATEbuoy_hydro $infile
+    else
+      ${thisdir}/GATEbuoy_meteor.x $infile
+    fi
     ls
     mv ${infile}*.nc ../.
   done
