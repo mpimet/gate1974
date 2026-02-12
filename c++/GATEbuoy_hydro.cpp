@@ -219,8 +219,7 @@ void convert_data(const std::string& infile) {
           if ( no_of_measurement == 0 ) {
             no_of_measurement++;
             dbuoydata.push_back(buoydata[i]);
-          }
-          if ( no_of_measurement > 0 && buoyTime > dbuoydata[no_of_measurement-1].seconds_of_year ) {
+          } else if ( no_of_measurement > 0 && buoyTime > dbuoydata[no_of_measurement-1].seconds_of_year ) {
             no_of_measurement++;
             dbuoydata.push_back(buoydata[i]);
           } else {
