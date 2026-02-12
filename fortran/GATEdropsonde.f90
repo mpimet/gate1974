@@ -436,10 +436,10 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
   v_id = define_variable_and_attribute_real( &
        ncid, dimids, 'v', 'northward_wind', 'northward wind', metadata%wind_unit, 999.0)
 
-  wd_id =  define_variable_and_attribute_real( &
+  ws_id =  define_variable_and_attribute_real( &
        ncid, dimids, 'ws', 'wind_speed', 'wind speed', metadata%wind_unit, 999.0)
 
-  ws_id =  define_variable_and_attribute_real( &
+  wd_id =  define_variable_and_attribute_real( &
        ncid, dimids, 'wd', 'wind_from_direction', 'wind from direction', metadata%wind_dir_unit, 999.0)
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
