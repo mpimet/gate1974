@@ -39,7 +39,7 @@ module GATE_metadata_mod
      character(len=1)  :: relative_humidity_unit='%'
      character(len=5)  :: specific_humidity_unit='kg/kg'
      character(len=6)  :: temperature_unit='kelvin'
-     character(len=7)  :: water_vapour_density='kg/m**3'
+     character(len=7)  :: water_vapour_density_unit='kg/m**3'
      character(len=3)  :: wind_dir_unit='deg'
      character(len=3)  :: wind_unit='m/s' 
   end type GATE_metadata_type
