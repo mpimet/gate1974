@@ -16,7 +16,7 @@ LDFLAGS = -L${NETCDF_LIB} -lnetcdf -Wl,-rpath,${NETCDF_LIB}
 MAIN_SRCS = GATEbuoy_meteor.cpp GATEbuoy_hydro.cpp GATEandCOMM_SHIPS.cpp
 
 # Library source files (contain functions only)
-LIB_SRCS = GATEdate_time.cpp GATEwrite_buoy_meteor.cpp GATEwrite_comm_ships.cpp GATEwrite_buoy_hydro.cpp GATEutils.cpp
+LIB_SRCS = GATEutils.cpp GATEdate_time.cpp GATEwrite_buoy_meteor.cpp GATEwrite_comm_ships.cpp GATEwrite_buoy_hydro.cpp
 
 # Object files
 MAIN_OBJS = $(MAIN_SRCS:.cpp=.o)
@@ -30,21 +30,21 @@ $(EXECUTABLES): $(LIB_OBJS)
 
 # Define individual rules for each executable
 GATEbuoy_meteor: GATEbuoy_meteor.o $(LIB_OBJS)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $^ -o $@ $(LDFLAGS) 
 
 GATEbuoy_hydro: GATEbuoy_hydro.o $(LIB_OBJS)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $^ -o $@ $(LDFLAGS) 
 
 GATEandCOMM_SHIPS: GATEandCOMM_SHIPS.o $(LIB_OBJS)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $^ -o $@ $(LDFLAGS) 
 
 # Pattern rule for linking executables (fallback)
 %: %.o $(LIB_OBJS)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $^ -o $@ $(LDFLAGS)
 
 # Pattern rule for compiling source files
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) -I$(NETCDF_INCLUDE) $(CXXFLAGS) -c $< -o $@
 
 # Clean the build
 clean:
