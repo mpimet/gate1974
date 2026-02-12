@@ -1,6 +1,5 @@
 #include <string>
 #include <vector>
-#include <netcdf.h>
 #include "GATEnetcdf.h"
 #include "GATEmetadata.h"
 #include "GATEwrite_buoy_hydro.h"
