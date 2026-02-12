@@ -442,10 +442,10 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
   lat_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'lat', 'latitude', 'latitude', 'degrees_north')
+       ncid, dimids, 'lat', 'latitude', 'latitude', 'degrees_north', 999999.9)
 
   lon_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'lon', 'longitude', 'longitude', 'degrees_east')
+       ncid, dimids, 'lon', 'longitude', 'longitude', 'degrees_east', 999999.9)
 
   p_id = define_variable_and_attribute_real( &
        ncid, dimids, 'p', 'air_pressure', &
@@ -457,15 +457,15 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   std_ta_id = define_variable_and_attribute_real( &
        ncid, dimids, 'std_ta', 'standard_deviation_of_air_temperature', &
-       'standard deviation of air temperature', metadata%temperature_unit, 999999.9)
+       'standard deviation of air temperature', metadata%temperature_unit, 9999.9)
 
   rhov_id = define_variable_and_attribute_real( &
        ncid, dimids, 'rhov', 'water_vapor_density', &
-       'water vapor density', metadata%temperature_unit, 999999.9)
+       'water vapor density', metadata%water_vapour_density_unit, 999999.9)
 
   std_rhov_id = define_variable_and_attribute_real( &
        ncid, dimids, 'std_rhov', 'standard_deviation_of_water_vapor_density', &
-       'standard deviation of water vapor density', metadata%temperature_unit, 9999.9)  
+       'standard deviation of water vapor density', metadata%water_vapour_density_unit, 9999.9)  
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "aircraft", len(trim(adjustl(metadata%aircraftname))), &
        trim(adjustl(metadata%aircraftname))))
@@ -476,15 +476,15 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   do i = 1, no_of_measurements
 
-     ! consider only good data
+     ! discard suspect data
 
      l_good = .FALSE.
 
-     if ( aircraftdata(i)%lat_flag  < 2 .AND. &
-          aircraftdata(i)%lon_flag  < 2 .AND. &
-          aircraftdata(i)%p_flag    < 2 .AND. &
-          aircraftdata(i)%t_flag    < 2 .AND. &
-          aircraftdata(i)%rhov_flag < 2) l_good = .TRUE.
+     if ( aircraftdata(i)%lat_flag  /= 2 .AND. &
+          aircraftdata(i)%lon_flag  /= 2 .AND. &
+          aircraftdata(i)%p_flag    /= 2 .AND. &
+          aircraftdata(i)%t_flag    /= 2 .AND. &
+          aircraftdata(i)%rhov_flag /= 2) l_good = .TRUE.
      
      if ( l_good ) then
 
@@ -501,12 +501,14 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
         std_ta(i) = std_ta(i)
 
      else
+
         p(i)        = 999999.9
         ta(i)       = 999999.9
         rhov(i)     = 999999.9
 
         std_ta(i)   = 9999.9
         std_rhov(i) = 9999.9
+
      endif
 
   enddo
