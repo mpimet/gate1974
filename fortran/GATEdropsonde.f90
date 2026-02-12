@@ -346,11 +346,23 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
   real    :: lat(no_of_levels)
   real    :: lon(no_of_levels)
 
+  integer              :: values(8)
+
+  character(len = 256) :: history
+
   integer :: i
 
   character(len=33) :: seconds_since
 
   ! some preparation for writing global attributes
+
+  call date_and_time(clockdate, clocktime, timezone, values)
+
+  write (history, "(A,I4,A1,I0.2,A1,I0.2,A1,3(I0.2,A1),A)" ) &
+                      "Created by Rene Redler, MPI-M on ",   &
+                      values(1), "-", values(2), "-", values(3), " ", &
+                      values(5), ":", values(6), ":", values(7), " ", &
+                      "from data in archive directory 3.64.02.101-3.69.02.104_19740601-19740930."
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                        &
@@ -450,6 +462,8 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
 
   write ( position_str, '(F9.4,A1,F8.4)' ) position_end_lon, ' ', position_end_lat 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "launch_end_position", 18, position_str))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
 
   call handle_err(nf_enddef (ncid))
 
