@@ -1,5 +1,5 @@
-##!/opt/homebrew/bin/bash
-#!//bin/bash
+#!/opt/homebrew/bin/bash
+##!//bin/bash
 
 
 # Check if Bash version is 4 or later

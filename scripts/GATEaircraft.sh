@@ -1,5 +1,5 @@
-##!/opt/homebrew/bin/bash
-#!/usr/bin/bash
+#!/opt/homebrew/bin/bash
+##!/usr/bin/bash
 
 # Check if Bash version is 4 or later
 if [ ${BASH_VERSION:0:1} -lt 4 ]; then
