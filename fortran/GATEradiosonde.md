@@ -4,8 +4,6 @@ The `GATEradiosonde` files contain Fortran code related to processing radiosonde
 
 1. **Module Definitions**:
     - **GATEradiosonde_mod**: Defines types and subroutines used for processing radiosonde data.
-    - **datetime**: Represents date and time.
-    - **position**: Represents geographical position.
     - **GATE_radiosonde_type**: Structure to hold radiosonde data.
     - **GATE_metadata_type**: Structure to hold metadata information.
 

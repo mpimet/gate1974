@@ -31,7 +31,7 @@ The main program handles the input file, processes the data, and calls subroutin
 
 The `convert_data` subroutine processes and converts the input data. It performs the following tasks:
 1. Reads the input file and processes the data records.
-2. Calls subroutines like `standard_deviation` and `*_time_converter` to process specific data fields.
+2. Calls subroutines `standard_deviation` to process specific data fields and `*_time_converter` to prepare the time axis.
 3. Allocates and manages memory for storing processed data.
 4. Filters out invalid data and writes the processed data to an array.
 

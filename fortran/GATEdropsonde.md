@@ -4,8 +4,6 @@ The `GATEdropsonde` files contains Fortran code related to processing dropsonde 
 
 1. **Module Definitions**:
     - **GATEdropsonde_mod**: Defines types and subroutines used for processing dropsonde data.
-    - **datetime**: Represents date and time.
-    - **position**: Represents geographical position.
     - **GATE_dropsonde_type**: Structure to hold dropsonde data.
     - **GATE_metadata_type**: Structure to hold metadata information.
 
