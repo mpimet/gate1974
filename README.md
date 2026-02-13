@@ -73,13 +73,12 @@ GATEsort.sh /\<path to\>/DATA/GATE/3.64.02.101-3.69.02.104\_19740601-19740930
 
 | Program | Description |
 | - | - |
-| `GATEdropsonde\_ecf73f.f90` | Reads and writes GATE C130 and C130 aircraft dropsonde data |
-| `GATEbuoy\_meteor.f90` | Reads and writes GATE Meteor buoy data |
-| `GATEradiosonde\_8db9d2.f90` | Reads and writes GATE Meteor radiosonde files |
-| `GATEradiosonde\_38aca3.f90` | Reads and writes GATE radiosonde files: CHARTERER, DALLAS, ENDURER, GILLISS, OCEANOGRPR, QUADRA, RESEARCHER, VANGUARD (all 38aca3), BIDASSOA (c598b7) |
-| `GATEdship\_f61f70.f90` | GATE\_AND\_COMM\_SHIP SST gridded data |
-| `GATEdship\_1a7095.f90` | METEOR, FAY, FAYE, and PLANET DSHIP data |
-| `GATEdship\_fdfbef.f90` | JAMES\_M\_GILLISS, DALLAS, RESEARCHER DSHIP data |
+| `GATEdropsonde.f90`        | Reads and writes GATE C130 and C130 aircraft dropsonde data |
+| `GATEbuoy\_meteor.f90`     | Reads and writes GATE Meteor buoy data |
+| `GATEradiosonde.f90`       | Reads and writes GATE radiosonde files: CHARTERER, DALLAS, ENDURER, GILLISS, METEOR, OCEANOGRPR, QUADRA, RESEARCHER, VANGUARD (38aca3), BIDASSOA (c598b7) |
+| `GATEdship\_f61f70.f90`    | GATE\_AND\_COMM\_SHIP SST gridded data |
+| `GATEdship\_1a7095.f90`    | METEOR, FAY, FAYE, and PLANET DSHIP data |
+| `GATEdship\_fdfbef.f90`    | JAMES\_M\_GILLISS, DALLAS, RESEARCHER DSHIP data |
 | `GATEaircraft\_db67b3.f90` | NCAR\_SABRE\_MEANS (aircraft NCAR SABRELINER) |
 | `GATEaircraft\_579bd3.f90` | DC-7\_CEV (579bd3 and d30c25, same Fortran format but expressed differently in ASCII files) |
 | `GATEaircraft\_ced38b.f90` | NOAA\_DC-6\_MEANS, NOAA\_US-C130\_MEANS |
@@ -95,8 +94,8 @@ GATEsort.sh /\<path to\>/DATA/GATE/3.64.02.101-3.69.02.104\_19740601-19740930
 
 | Program | Description |
 | - | - |
-| `GATEbuoy\_meteor.cpp` | Reads and writes GATE Meteor buoy data |
-| `GATEbuoy\_hydro.cpp` | Reads and writes GATE UK Hydrographic ship buoy data |
+| `GATEbuoy\_meteor.cpp`   | Reads and writes GATE Meteor buoy data |
+| `GATEbuoy\_hydro.cpp`    | Reads and writes GATE UK Hydrographic ship buoy data |
 | `GATEandCOMM\_SHIPS.cpp` | GATE\_AND\_COMM\_SHIP SST gridded data |
 
 
