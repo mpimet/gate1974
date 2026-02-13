@@ -1,0 +1,22 @@
+# Jupyter Notebook files
+*.ipynb
+
+# Compiled object files
+*.o
+*.mod
+
+# Optional: Add other common notebook-related files
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Optional: Add other common build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+build/
+dist/
+*.egg-info/
+
