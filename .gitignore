@@ -4,12 +4,13 @@
 # Compiled object files
 *.o
 *.mod
+*.x
 
-# Optional: Add other common notebook-related files
+# Add other common notebook-related files
 .ipynb_checkpoints/
 *.ipynb_checkpoints/
 
-# Optional: Add other common build artifacts
+# Add other common build artifacts
 __pycache__/
 *.pyc
 *.pyo
@@ -19,4 +20,4 @@ env/
 build/
 dist/
 *.egg-info/
-
+.DS_Store
