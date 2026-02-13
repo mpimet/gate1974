@@ -346,13 +346,17 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
   real    :: lat(no_of_levels)
   real    :: lon(no_of_levels)
 
+  character(len=33)    :: seconds_since
+
+  character(len = 8)   :: clockdate
+  character(len = 10)  :: clocktime
+  character(len = 5)   :: timezone
+
   integer              :: values(8)
 
   character(len = 256) :: history
 
   integer :: i
-
-  character(len=33) :: seconds_since
 
   ! some preparation for writing global attributes
 
