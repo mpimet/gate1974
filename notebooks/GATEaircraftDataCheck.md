@@ -31,7 +31,7 @@ from termcolor import colored
 ```
 
 ```python
-if platform.node()[:7] == "Lotsawa":
+if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/AIRCRAFT/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
@@ -54,7 +54,7 @@ cdo = Cdo(tempdir=rootpath+'tmp')
 #
 #path=rootpath+"NASA_CONVAIR_990_MEANS"; PLATFORM="NASA Convair 990"; INTERVALL=""
 #path=rootpath+"NCAR_ELECTRA_MEANS"; PLATFORM="NCAR Elektra"; INTERVALL=""
-#path=rootpath+"NCAR_SABRE_MEANS"; PLATFORM="NCAR Sabreliner"; INTERVALL=""
+path=rootpath+"NCAR_SABRE_MEANS"; PLATFORM="NCAR Sabreliner"; INTERVALL=""
 #path=rootpath+"NOAA_DC-6_MEANS"; PLATFORM="NOAA DC-6"; INTERVALL=""
 #path=rootpath+"NOAA_US-C130_MEANS"; PLATFORM="NOAA C130"; INTERVALL=""
 #path=rootpath+"NCAR_QUEEN_AIR_MEANS"; PLATFORM="NCAR Queen Air"; INTERVALL=""
@@ -67,7 +67,7 @@ cdo = Cdo(tempdir=rootpath+'tmp')
 #path=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_100F"
 #path=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_001F"
 
-path=rootpath+"39_CHARLIE"; PLATFORM="NOAA DC-6 39 Charlie"; INTERVALL=""
+#path=rootpath+"39_CHARLIE"; PLATFORM="NOAA DC-6 39 Charlie"; INTERVALL=""
 
 files = sorted(glob.glob(f"{path}/*{INTERVALL}.nc"))
 ```

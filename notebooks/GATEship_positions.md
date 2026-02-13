@@ -38,7 +38,7 @@ from collections import defaultdict
 ```
 
 ```python
-if platform.node()[:7] == "Lotsawa" :
+if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/DSHIP/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
@@ -69,6 +69,7 @@ datasets = [xr.open_dataset(file) for file in files]
 ship_coordinates = defaultdict(list)
 
 for ds in datasets:
+
     shipname = ds.attrs['shipname']#[0]  # Get ship name from attributes
     
     # Extract coordinates (squeezing the measurement dimension)

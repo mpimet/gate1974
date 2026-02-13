@@ -28,9 +28,8 @@ from cdo import *
 ```
 
 ```python
-if platform.node()[:7] == "Lotsawa" or platform.node() ==  "w149-176.mpimet.mpg.de":
+if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "w149-176":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/DSHIP/"
-    # rootpath="/Users/m300083/GIT/RenesPlotBox.git/GATE/c++/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
     rootpath="/work/mh0287/m300083/GATE_v3.2/DSHIP/"

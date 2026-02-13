@@ -31,7 +31,7 @@ from termcolor import colored
 ```
 
 ```python
-if platform.node()[:7] == "Lotsawa":
+if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/DSHIP/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
@@ -45,12 +45,12 @@ cdo = Cdo(tempdir=rootpath+'tmp')
 #path=rootpath+"METEOR"; PLATFORM="Meteor"; INTERVALL=""
 #path=rootpath+"PLANET"; PLATFORM="Planet"; INTERVALL=""
 
-path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_3600S"
+#path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_3600S"
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_1800S"
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_0180S"
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_0600S"
 
-#path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_3600S"
+path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_3600S"
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_1800S"
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_0600S"
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_0180S"

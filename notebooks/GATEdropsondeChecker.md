@@ -27,7 +27,7 @@ import cartopy.crs as ccrs
 ```
 
 ```python
-if platform.node() == "Lotsawa.local":
+if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/AIRCRAFT/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
@@ -41,7 +41,15 @@ print ("Dataset contains ", len(files), "files.")
 ```
 
 ```python
+print ( platform.node()[:8] )
+```
+
+```python
 ds = xr.open_dataset(files[10])
+```
+
+```python
+print ( ds )
 ```
 
 ```python
@@ -107,15 +115,15 @@ plt.show()
 ```
 
 ```python
-plt.plot(ds.wspd.values, ds.p.values, marker='.', linestyle='-', markersize=2, color="black")
-plt.xlabel(f"{ds.wspd.name} ({ds.wspd.attrs.get('units')})")
+plt.plot(ds.ws.values, ds.p.values, marker='.', linestyle='-', markersize=2, color="black")
+plt.xlabel(f"{ds.ws.name} ({ds.ws.attrs.get('units')})")
 plt.ylabel(f"{ds.p.name} ({ds.p.attrs.get('units')})")
 plt.gca().invert_yaxis()
 plt.grid(True)
 
 # Add secondary y-axis for altitude
 ax2 = plt.twinx()
-ax2.plot(ds.wspd.values, ds.altitude.values, marker='.', linestyle='-', markersize=2, color="red", alpha=0.7)
+ax2.plot(ds.ws.values, ds.altitude.values, marker='.', linestyle='-', markersize=2, color="red", alpha=0.7)
 ax2.set_ylabel(f"{ds.altitude.name} ({ds.altitude.attrs.get('units')})", color="red")
 ax2.tick_params(axis='y', labelcolor="red")
 
@@ -123,15 +131,15 @@ plt.show()
 ```
 
 ```python
-plt.plot(ds.wdir.values, ds.p.values, marker='.', linestyle='-', markersize=2, color="black")
-plt.xlabel(f"{ds.wdir.name} ({ds.wspd.attrs.get('units')})")
+plt.plot(ds.wd.values, ds.p.values, marker='.', linestyle='-', markersize=2, color="black")
+plt.xlabel(f"{ds.wd.name} ({ds.wd.attrs.get('units')})")
 plt.ylabel(f"{ds.p.name} ({ds.p.attrs.get('units')})")
 plt.gca().invert_yaxis()
 plt.grid(True)
 
 # Add secondary y-axis for altitude
 ax2 = plt.twinx()
-ax2.plot(ds.wdir.values, ds.altitude.values, marker='.', linestyle='-', markersize=2, color="red", alpha=0.7)
+ax2.plot(ds.wd.values, ds.altitude.values, marker='.', linestyle='-', markersize=2, color="red", alpha=0.7)
 ax2.set_ylabel(f"{ds.altitude.name} ({ds.altitude.attrs.get('units')})", color="red")
 ax2.tick_params(axis='y', labelcolor="red")
 

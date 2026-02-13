@@ -24,7 +24,7 @@ from cdo import *
 ```
 
 ```python
-if platform.node() == "Lotsawa.local":
+if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/RADIOSONDE/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:

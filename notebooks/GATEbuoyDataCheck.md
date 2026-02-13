@@ -27,7 +27,7 @@ from termcolor import colored
 ```
 
 ```python
-if platform.node() == "Lotsawa.local":
+if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/BUOY/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
@@ -36,11 +36,22 @@ else:
 cdo = Cdo(tempdir=rootpath+'tmp')
 cdo.env = {"SKIP_SAME_TIME": "1"}
 
-path=rootpath+"METEOR"; PLATFORM="Meteor Buoy"; INTERVALL=""
-#path=rootpath+"HYDROGRAPHIC_SHIP"; PLATFORM="UK Hydrographic Ship Buoy"; INTERVALL=""
+#path=rootpath+"METEOR"; PLATFORM="Meteor Buoy"; INTERVALL=""
+path=rootpath+"HYDROGRAPHIC_SHIP"; PLATFORM="UK Hydrographic Ship Buoy"; INTERVALL=""
+
+cdo = Cdo(tempdir=rootpath+'tmp')
+cdo.env = {"SKIP_SAME_TIME": "1"}
 
 list=path+"/*"+INTERVALL+".nc"
 files = sorted(glob.glob(f"{list}"))
+```
+
+```python
+# print ( platform.node() )
+```
+
+```python
+# print ( path, files )
 ```
 
 ```python
@@ -56,8 +67,6 @@ data = data.drop_duplicates(dim='time', keep='first')
 print ( data )
 print ()
 print ("Covering ", data.time[0].values," to ", data.time[data.time.size-1].values)
-
-
 ```
 
 ```python
@@ -97,6 +106,13 @@ except:
 
 ```python
 try:
+    data.p.plot()
+except:
+    print(colored("WARNING: sea level pressure p not available!", color="red", attrs=["bold"])) 
+```
+
+```python
+try:
     da=data.ws
     exist=True
 except:
@@ -117,8 +133,8 @@ except:
     print(colored("WARNING: dry bulb temperature not available!", color="red", attrs=["bold"])) 
     exist=False
 
-da=data.dbt
-da.hvplot.scatter(x='time', s=3, height=400, responsive=True,
+if exist :
+    da.hvplot.scatter(x='time', s=3, height=400, responsive=True,
                   title=f"{PLATFORM} {da.long_name}",
                   xlabel='Time',
                   ylabel=f"{da.name} ({da.attrs.get('units', '')})")
@@ -132,7 +148,8 @@ except:
     print(colored("WARNING: sst not available!", color="red", attrs=["bold"])) 
     exist=False
 
-da.hvplot.scatter(x='time', s=3, height=400, responsive=True,
+if exist :
+    da.hvplot.scatter(x='time', s=3, height=400, responsive=True,
                    title=F"{PLATFORM} {da.long_name}",
                    xlabel='Time',
                    ylabel=f"{da.name} ({da.attrs.get('units', '')})")
@@ -146,7 +163,8 @@ except:
     print(colored("WARNING: q not available!", color="red", attrs=["bold"])) 
     exist=False
 
-da.hvplot.scatter(x='time', s=3, height=400, responsive=True,
+if exist :
+    da.hvplot.scatter(x='time', s=3, height=400, responsive=True,
                    title=F"{PLATFORM} {da.long_name}",
                    xlabel='Time',
                    ylabel=f"{da.name} ({da.attrs.get('units', '')})")
@@ -162,4 +180,8 @@ dzarr = xr.open_zarr(f"{PLATFORM}{INTERVALL}.zarr")
 
 ```python
 print (dzarr)
+```
+
+```python
+
 ```
