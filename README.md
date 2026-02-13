@@ -101,32 +101,36 @@ GATEsort.sh /<path to>/DATA/GATE/3.64.02.101-3.69.02.104_19740601-19740930
 
 ### Compilation Instructions for Fortran
 
-- `make -f Makefile.levante` : Compile `GATEradiosonde.f90` and link on Levante
+- `make -f Makefile.levante`     : Compile and link all Fortran programms on Levante
 
-- `make -f Makefile.mpim`    : Compile `GATEradiosonde.f90` and link on MPI-M desktop PCs
+- `make -f Makefile.mpim`        : Compile and link all Fortran programms on MPI-M desktop PCs
 
-- `make -f Makefile.osx`     : Compile `GATEradiosonde.f90` and link on Mac w/ homebrew
+- `make -f Makefile.osx`         : Compile and link all Fortran programms on Mac w/ homebrew
 
-- `make clean` : Remove `*.o`, `*.mod`, and `*.x` files
+- `make -f Makefile.<...> clean` : Remove `*.o`, `*.mod`, and `*.x` files
 
 ### Compilation Instructions for c++
 
-- `make all`: Compile and link all c++ files on Mac OSX w/ homebrew
+- `make -f Makefile.osx all`     : Compile and link all c++ files on Mac OSX w/ homebrew
 
-- `make clean` : Remove `*.o `and `*.x` files
+- `make -f Makefile.mpim all`    : Compile and link all c++ files on MPI-M desktop PCs
+
+- `make -f Makefile.<...> clean` : Remove `*.o `and `*.x` files
 
 ### Conversion Scripts
 
-- `GATEaircraft.sh` : Launch aircraft data conversion
+- `GATEaircraft.sh`   : Launch aircraft data conversion
+
+- `GATEdropsonde.sh`  : Launch dropsonde data conversion
 
 - `GATEradiosonde.sh` : Launch radiosonde data conversion
 
-- `GATEdship.sh` : Launch DSHIP data conversion
+- `GATEdship.sh`      : Launch DSHIP data conversion
 
-- `GATEbuoy.sh` : Launch buoy data conversion
+- `GATEbuoy.sh`       : Launch buoy data conversion
 
 > **Usage:** Run any script with `-h` flag for help:  
-`GATE\<...\>.sh -h`
+`GATE<...>.sh -h`
 
 ## Notes
 
