@@ -532,7 +532,7 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
   sst_id = define_variable_and_attribute_real( &
        ncid, dimids, 'sst', 'sea_surface_temperature', 'sea surface temperature', metadata%temperature_unit, 999.9)
 
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "shipname1", len(trim(adjustl(metadata%shipname1))), &
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "shipname", len(trim(adjustl(metadata%shipname1))), &
        trim(adjustl(metadata%shipname1))))
 
   call handle_err(nf_put_att_real(ncid, NF_GLOBAL, "Average_interval", NF_REAL, 1, real(metadata%interval)))
