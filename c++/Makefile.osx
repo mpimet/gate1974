@@ -41,7 +41,10 @@ all: $(EXECUTABLES)
 
 # Clean the build
 clean:
-	rm -f $(MAIN_OBJS) $(LIB_OBJS) $(EXECUTABLES)
+	rm -f $(MAIN_OBJS) $(LIB_OBJS)
 
-.PHONY: all clean
+realclean: clean
+	rm $(EXECUTABLES)
+
+.PHONY: all clean realclean
 

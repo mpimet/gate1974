@@ -52,8 +52,11 @@ build-all: modules programs link
 # make all && make GATEaircraft_db67b3.x
 
 clean:
-	rm -f *.mod *.o *.x
+	rm -f *.mod *.o
 
-.PHONY: all build-all clean
+realclean: clean
+	rm -r *.x
+
+.PHONY: all build-all clean realclean
 
 

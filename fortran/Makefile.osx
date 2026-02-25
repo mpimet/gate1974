@@ -32,4 +32,7 @@ $(MODULE_MODS): %.mod: %.f90
 	$(LD) $(LDFLAGS) $< $(MODULE_OBJECTS) -o $@
 
 clean:
-	rm -f *.mod *.o *.x
+	rm -f *.mod *.o
+
+realclean: clean
+	rm -r *.x
