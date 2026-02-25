@@ -14,15 +14,15 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata);
 int convert_data(const std::string& infile);
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
+    if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <inputfile>" << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     std::ifstream infile(argv[1]);
     if (!infile.is_open()) {
         std::cerr << "Error opening file: " << argv[1] << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     std::string line;
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     }
 
     infile.close();
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
@@ -65,7 +65,7 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
     }
 }
 
-std::vector<int> parseFixedWidthIntegers(const std::string& input) {
+std::vector<int> parseFixedWidthIntegers(std::string const& input) {
     std::vector<int> result;
     
     // Process the string in chunks of 3 characters
@@ -84,7 +84,7 @@ std::vector<int> parseFixedWidthIntegers(const std::string& input) {
         try {
             int num = std::stoi(chunk);
             result.push_back(num);
-        } catch (const std::exception& e) {
+        } catch (std::exception const& e) {
             std::cerr << "Error converting chunk '" << chunk << "': " << e.what() << std::endl;
         }
     }
@@ -92,13 +92,12 @@ std::vector<int> parseFixedWidthIntegers(const std::string& input) {
     return result;
 }
 
-
-int convert_data(const std::string& infile) {
+int convert_data(std::string const& infile) {
     std::string line; // Declare the line variable here
     std::ifstream file(infile);
     if (!file.is_open()) {
         std::cerr << "Error opening file: " << infile << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     GATE_metadata_type metadata;
@@ -115,8 +114,8 @@ int convert_data(const std::string& infile) {
     }
 
     // Calculate the number of grid points in each direction
-    const int nlon = static_cast<int>((lon_max - lon_min) / res) + 1;
-    const int nlat = static_cast<int>((lat_max - lat_min) / res) + 1;
+    int const nlon = static_cast<int>((lon_max - lon_min) / res) + 1;
+    int const nlat = static_cast<int>((lat_max - lat_min) / res) + 1;
 
     // Start with data section
     while (ierror == 0) {
@@ -124,7 +123,7 @@ int convert_data(const std::string& infile) {
         for (int i = 0; i < 24; ++i) {
             std::getline(file, line);
             if (file.eof()) {
-                ierror = 1;
+	      ierror = 1;
                 break;
             }
             record_lines += line;
@@ -136,25 +135,28 @@ int convert_data(const std::string& infile) {
         int type_id, records_in_line, records_handled, line_number;
 
         std::sscanf(record_lines.c_str(), "%1d %4d %10d %5d",
-		    &type_id,
+                    &type_id,
                     &records_in_line,
                     &records_handled,
                     &line_number);
 
-        const char *ptr = record_lines.c_str() + 20;
-	const size_t chars_to_parse = nlon * 3;
-	std::string limited_ptr(ptr, chars_to_parse);
+        char const *ptr = record_lines.c_str() + 20;
+        size_t const chars_to_parse = nlon * 3;
+        std::string const limited_ptr(ptr, chars_to_parse);
 
-	std::vector<int> sstBand = parseFixedWidthIntegers(limited_ptr);
-	commShipData.sst.insert(commShipData.sst.end(), std::make_move_iterator(sstBand.begin()), 
-                        std::make_move_iterator(sstBand.end()));
+        std::vector<int> sstBand = parseFixedWidthIntegers(limited_ptr);
+        commShipData.sst.insert(commShipData.sst.end(),
+                                std::make_move_iterator(sstBand.begin()), 
+                                std::make_move_iterator(sstBand.end()));
     }
     if ( commShipData.sst.size() != nlon*nlat ) {
-      std::cout << "Number of parsed integers " << commShipData.sst.size() << " does not equal " << nlon*nlat << std::endl;
-      return 1;
+        std::cout << "Number of parsed integers "
+                  << commShipData.sst.size() << " does not equal "
+                  << nlon*nlat << std::endl;
+        return EXIT_FAILURE;
     }
     file.close();
 
     write_netcdf_comm_ships(infile, nlon, nlat, commShipData, metadata);
-    return 0;
+    return EXIT_SUCCESS;
 }

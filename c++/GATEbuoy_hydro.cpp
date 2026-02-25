@@ -9,18 +9,18 @@
 #include "GATEwrite_buoy_hydro.h"
 
 void read_metadata(std::ifstream& file, GATE_metadata_type& metadata);
-void convert_data(const std::string& infile);
+void convert_data(std::string const& infile);
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <inputfile>" << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     std::ifstream infile(argv[1]);
     if (!infile.is_open()) {
         std::cerr << "Error opening file: " << argv[1] << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     std::string line;
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     }
 
     infile.close();
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
@@ -79,7 +79,7 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
                 metadata.time_end.minute = std::stoi(line.substr(11, 2));
                 metadata.time_end.second = std::stoi(line.substr(13, 2));
 
-		metadata.lat_end.deg = std::stoi(line.substr(19, 2));
+                metadata.lat_end.deg = std::stoi(line.substr(19, 2));
                 metadata.lat_end.min = std::stoi(line.substr(21, 2));
                 metadata.lat_end.sec = std::stoi(line.substr(23, 2));
                 metadata.lon_end.deg = std::stoi(line.substr(25, 4));
@@ -95,7 +95,7 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
     }
 }
 
-void convert_data(const std::string& infile) {
+void convert_data(std::string const& infile) {
     std::string line; // Declare the line variable here
     std::ifstream file(infile);
     if (!file.is_open()) {
@@ -147,33 +147,33 @@ void convert_data(const std::string& infile) {
                   &records_handled,
                   &line_number);
 
-      const char *ptr = record_lines.c_str() + 20;
+      char const *ptr = record_lines.c_str() + 20;
 
       // Derived from Fortran format I4,A5,I4,A4,I4,2F6.2,F8.2
       // const char* const format = "%4d %5c %4d %4c %4i %6f %6f %8f";
       // const int RECORD_WIDTH = calculate_record_width(format);
       //
       // for (int i = 0; i < BUOY_DATA_IN_LINE; i++) {
-      // 	std::sscanf(ptr,
-      // 		    format,
-      // 		    &buoydata[i].sequence,
-      // 		    buoydata[i].quality,
-      // 		    &buoydata[i].julian_day,
-      // 		    buoydata[i].time,
-      // 		    &buoydata[i].wind_direction,
-      // 		    &buoydata[i].wind_speed,
-      // 		    &buoydata[i].dry_bulb_temperature,
-      // 		    &buoydata[i].sea_level_pressure);
-      // 	std::cout << buoydata[i].sequence   << " "  << buoydata[i].quality << " "
-      // 		  << buoydata[i].julian_day << " "  << buoydata[i].time << std::endl;
+      //         std::sscanf(ptr,
+      //                     format,
+      //                     &buoydata[i].sequence,
+      //                     buoydata[i].quality,
+      //                     &buoydata[i].julian_day,
+      //                     buoydata[i].time,
+      //                     &buoydata[i].wind_direction,
+      //                     &buoydata[i].wind_speed,
+      //                     &buoydata[i].dry_bulb_temperature,
+      //                     &buoydata[i].sea_level_pressure);
+      //         std::cout << buoydata[i].sequence   << " "  << buoydata[i].quality << " "
+      //                   << buoydata[i].julian_day << " "  << buoydata[i].time << std::endl;
       //
-      // 	ptr += RECORD_WIDTH;
+      //         ptr += RECORD_WIDTH;
       // }
       //
 
       for (int i = 0; i < BUOY_DATA_IN_LINE; i++)
         {
-	  std::sscanf(ptr, "%4d", &buoydata[i].sequence);
+          std::sscanf(ptr, "%4d", &buoydata[i].sequence);
           ptr += 4;
 
           std::sscanf(ptr, "%5c", buoydata[i].quality);

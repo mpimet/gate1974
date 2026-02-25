@@ -2,7 +2,7 @@
 #include "GATEutils.h"
 
 // Parse a single format field starting at `pos` in `sv`
-FormatField parse_field(std::string_view sv, size_t& pos) {
+FormatField parse_field(std::string_view const sv, size_t& pos) {
     if (pos >= sv.size() || sv[pos] != '%') {
         return {0, FormatType::UNKNOWN, false};
     }
@@ -42,7 +42,7 @@ FormatField parse_field(std::string_view sv, size_t& pos) {
 }
 
 // Calculate total width and validate format
-int calculate_record_width(const char* format) {
+int calculate_record_width(char const* format) {
     int width = 0;
     while (*format) {
         if (*format == '%') {
@@ -56,7 +56,7 @@ int calculate_record_width(const char* format) {
                 // We assume the field width is the number before 'f', etc.
                 // But we need to extract the width from the format string
                 // So we go back and parse the digits
-                const char* start = format - 1;
+                char const* start = format - 1;
                 while (start > format - 10 && *(start - 1) >= '0' && *(start - 1) <= '9') {
                     --start;
                 }

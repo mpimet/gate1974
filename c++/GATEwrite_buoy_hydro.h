@@ -9,10 +9,11 @@
 #include "GATEmetadata.h"
 #include "GATEbuoy_hydro.h"
 
-void write_netcdf_buoy_hydro(const std::string &infile, 
-                  int no_of_measurements, 
-                  std::vector<GATE_buoy_type> &dbuoydata,
-                  const GATE_metadata_type &metadata);
+void
+write_netcdf_buoy_hydro( std::string const& infile, 
+                         int no_of_measurements, 
+                         std::vector<GATE_buoy_type> const& dbuoydata,
+                         GATE_metadata_type const& metadata);
 
 #endif // GATE_WRITE_BUOY_HYDRO_H
 

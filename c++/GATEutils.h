@@ -18,12 +18,12 @@ struct FormatField {
 };
 
 // Parse a single format field starting at `pos` in `sv`
-FormatField parse_field(std::string_view sv, size_t& pos);
+FormatField parse_field(std::string_view const sv, size_t& pos);
 
 // Calculate total width and validate format
-int calculate_record_width(const char* format);
+int calculate_record_width(char const* format);
 
 // Get number of fields
-int count_fields(std::string_view format);
+int count_fields(std::string_view const format);
 
 #endif

@@ -5,10 +5,10 @@
 #include "GATEwrite_buoy_meteor.h"
 
 void write_netcdf_buoy_meteor(
-		  const std::string &infile,
+		  std::string const& infile,
                   int no_of_measurements,
-                  std::vector<GATE_buoy_type> &dbuoydata,
-                  const GATE_metadata_type &metadata) {
+                  std::vector<GATE_buoy_type> const& dbuoydata,
+                  GATE_metadata_type const& metadata) {
 
     std::string outfile = infile + ".nc";
     std::string seconds_since;
@@ -40,8 +40,8 @@ void write_netcdf_buoy_meteor(
     int time_id, measurement_id, timelenght_id;
     int ws_id, wd_id, dbt_id, q_id, sst_id;
 
-    const float fill_value_1   =  -1.0f;
-    const float fill_value_999 = 999.9f;
+    float const fill_value_1   =  -1.0f;
+    float const fill_value_999 = 999.9f;
 
     handle_err(nc_create(outfile.c_str(), NC_CLOBBER, &ncid));
 
@@ -115,14 +115,14 @@ void write_netcdf_buoy_meteor(
       dbt[i] = validv(rec.val_dry_bulb_temp,     rec.dry_bulb_temp)     ? rec.dry_bulb_temp + 273.15f : 999.9f;
       sst[i] = validv(rec.val_water_temperature, rec.water_temperature) ? rec.water_temperature + 273.15f : 999.9f;
     }
-   
-    handle_err(nc_put_vara_float(ncid, time_id, start, edge, &measurement_time[0]));
 
-    handle_err(nc_put_vara_float(ncid, ws_id,  start, edge, &ws[0]));
-    handle_err(nc_put_vara_float(ncid, wd_id,  start, edge, &wd[0]));
-    handle_err(nc_put_vara_float(ncid, q_id,   start, edge, &q[0]));
-    handle_err(nc_put_vara_float(ncid, dbt_id, start, edge, &dbt[0]));
-    handle_err(nc_put_vara_float(ncid, sst_id, start, edge, &sst[0]));
+    handle_err(nc_put_vara_float(ncid, time_id, start, edge, measurement_time.data()));
+
+    handle_err(nc_put_vara_float(ncid, ws_id,  start, edge, ws.data()  ));
+    handle_err(nc_put_vara_float(ncid, wd_id,  start, edge, wd.data()  ));
+    handle_err(nc_put_vara_float(ncid, q_id,   start, edge, q.data()   ));
+    handle_err(nc_put_vara_float(ncid, dbt_id, start, edge, dbt.data() ));
+    handle_err(nc_put_vara_float(ncid, sst_id, start, edge, sst.data() ));
 
     handle_err(nc_close(ncid));
 }

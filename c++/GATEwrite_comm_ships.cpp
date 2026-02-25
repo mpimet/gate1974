@@ -6,11 +6,11 @@
 #include "GATEwrite_comm_ships.h"
 
 void write_netcdf_comm_ships(
-                  const std::string &infile,
+                  std::string const &infile,
                   int nlon,
-		  int nlat,
-                  GATEand_comm_ship_type commShipData,
-                  const GATE_metadata_type &metadata) {
+                  int nlat,
+                  GATEand_comm_ship_type const commShipData,
+                  GATE_metadata_type const &metadata) {
 
     std::string outfile = infile + ".nc";
     std::string seconds_since;
@@ -31,7 +31,7 @@ void write_netcdf_comm_ships(
     int time_dimid, lon_dimid, lat_dimid;
     int sst_id;
 
-    const float fill_value_999 = 999.9f;
+    float const fill_value_999 = 999.9f;
 
     handle_err(nc_create(outfile.c_str(), NC_CLOBBER, &ncid));
 
@@ -49,15 +49,21 @@ void write_netcdf_comm_ships(
 
     lat_id = defineVariableAndAttribute<float, 1>(ncid, &dimids[1], "lat", "latitude", "latitude", "degrees_north");
     lon_id = defineVariableAndAttribute<float, 1>(ncid, &dimids[2], "lon", "longitude", "longitude", "degrees_east");
-    sst_id = defineVariableAndAttribute<float, 3>(ncid, dimids, "sst", "sea_surface_temperature", "sea surface temperature", metadata.temperature_unit, fill_value_999);
+    sst_id = defineVariableAndAttribute<float, 3>(ncid, dimids,     "sst", "sea_surface_temperature",
+                                                                           "sea surface temperature",
+                                                                           metadata.temperature_unit,
+                                                                           fill_value_999);
 
     std::time_t now = std::time(nullptr);
     std::tm *timeinfo = std::localtime(&now);
 
     std::ostringstream history_stream;
     history_stream << "Created by Rene Redler, MPI-M on " << (1900 + timeinfo->tm_year) << "-"
-                   << (1 + timeinfo->tm_mon) << "-" << timeinfo->tm_mday << " "
-                   << timeinfo->tm_hour << ":" << timeinfo->tm_min << ":" << timeinfo->tm_sec
+                   << (1 + timeinfo->tm_mon) << "-"
+                   << timeinfo->tm_mday << " "
+                   << timeinfo->tm_hour << ":"
+                   << timeinfo->tm_min << ":"
+                   << timeinfo->tm_sec
                    << " from from GATE_AND_COMM_SHIPS mapped sst data in archive directory 3.00.02.104-3.31.02.101_19740601-19740930.";
     std::string history = history_stream.str();
 
@@ -93,8 +99,8 @@ void write_netcdf_comm_ships(
     // Sea surface temperature
 
     std::vector<float> sst;
-    std::transform(commShipData.sst.begin(), commShipData.sst.end(), std::back_inserter(sst),
-		   [fill_value_999](int x) { return (x == 0) ? fill_value_999 : static_cast<float>(x) / 10.0f + 273.15f; });
+    std::ranges::transform(commShipData.sst, std::back_inserter(sst),
+                   [fill_value_999](int x) { return (x == 0) ? fill_value_999 : static_cast<float>(x) / 10.0f + 273.15f; });
 
     size_t start3d[3] = {0, 0, 0};
     size_t count3d[3] = {1, static_cast<size_t>(nlat), static_cast<size_t>(nlon)};

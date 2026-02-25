@@ -15,10 +15,10 @@ inline void handle_err(int status) {
 template<typename T, int NDIMS>
 int defineVariableAndAttribute(int ncid,
                                int dimids[NDIMS],
-                               const std::string &var_name,
-                               const std::string &std_name,
-                               const std::string &long_name,
-                               const std::string &units,
+                               std::string const& var_name,
+                               std::string const& std_name,
+                               std::string const& long_name,
+                               std::string const& units,
                                std::optional<T> fill_value = std::nullopt) {
     int var_id;
     int nc_type;
