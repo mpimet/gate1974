@@ -23,7 +23,7 @@ GATEdataconversion.tex can easily be converted to a pdf document using pdflatex.
 - [Aircraft data](./fortran/GATEaircraft.md)
 - [Buoy data](./fortran/GATEbuoy.md)
 - [Dropsonde data](./fortran/GATEdropsonde.md)
-- [Radiosondedata](./fortran/GATEradiosonde.md)
+- [Radiosonde data](./fortran/GATEradiosonde.md)
 - [Buoy data](./fortran/GATEbuoy.md)
 - [Ship data](./fortran/GATEdship.md)
 
