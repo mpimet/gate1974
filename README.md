@@ -8,6 +8,10 @@
 
 **Version 3.2**
 
+Processing a subset of data collected during the Global Atmospheric Research Program's (GARP) Atlantic Tropical Experiment (GATE) in summer 1974, see J.P. Kuettner, 1974: General description and central program of GATE, BAMS, 55, pp 526–530.
+
+For further information on the GATE experiment see also https://www.eol.ucar.edu/field_projects/gate .
+
 ---
 
 Please see the doc directory for further information. 
