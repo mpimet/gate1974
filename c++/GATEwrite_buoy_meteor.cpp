@@ -56,10 +56,10 @@ void write_netcdf_buoy_meteor(
     handle_err(nc_put_att_text(ncid, time_id, "units", seconds_since.length(), seconds_since.c_str()));
     handle_err(nc_put_att_text(ncid, time_id, "calendar", 19, "proleptic_gregorian"));
 
-    ws_id  = defineVariableAndAttribute<float, 2>(ncid, dimids, "ws",  "wind_speed",              "wind speed",              metadata.wind_unit,        fill_value_1);
     wd_id  = defineVariableAndAttribute<float, 2>(ncid, dimids, "wd",  "wind_from_direction",     "wind from direction",     metadata.wind_dir_unit,    fill_value_1);
-    q_id   = defineVariableAndAttribute<float, 2>(ncid, dimids, "q",   "specific_humidity",       "specific humidity",       metadata.humidity_unit,    fill_value_999);
+    ws_id  = defineVariableAndAttribute<float, 2>(ncid, dimids, "ws",  "wind_speed",              "wind speed",              metadata.wind_unit,        fill_value_1);
     dbt_id = defineVariableAndAttribute<float, 2>(ncid, dimids, "dbt", "dry_bulb_temperature",    "dry bulb temperature",    metadata.temperature_unit, fill_value_999);
+    q_id   = defineVariableAndAttribute<float, 2>(ncid, dimids, "q",   "specific_humidity",       "specific humidity",       metadata.humidity_unit,    fill_value_999);
     sst_id = defineVariableAndAttribute<float, 2>(ncid, dimids, "sst", "sea_surface_temperature", "sea surface temperature", metadata.temperature_unit, fill_value_999);
 
     handle_err(nc_put_att_text(ncid, NC_GLOBAL, "platform", metadata.shipname1.length(), metadata.shipname1.c_str()));
@@ -109,11 +109,11 @@ void write_netcdf_buoy_meteor(
 
       measurement_time[i] = rec.time;
 
-      ws[i]  = validw(rec.val_wind_speed)                               ? rec.wind_speed : -1.0f;
-      wd[i]  = validw(rec.val_wind_direction)                           ? rec.wind_direction : -1.0f;
-      q[i]   = validv(rec.val_spec_humidity,     rec.spec_humidity)     ? rec.spec_humidity / 1000.0f : 999.9f;
-      dbt[i] = validv(rec.val_dry_bulb_temp,     rec.dry_bulb_temp)     ? rec.dry_bulb_temp + 273.15f : 999.9f;
-      sst[i] = validv(rec.val_water_temperature, rec.water_temperature) ? rec.water_temperature + 273.15f : 999.9f;
+      ws[i]  = validw(rec.val_wind_speed)                               ? rec.wind_speed              : fill_value_1;
+      wd[i]  = validw(rec.val_wind_direction)                           ? rec.wind_direction          : fill_value_1;
+      q[i]   = validv(rec.val_spec_humidity,     rec.spec_humidity)     ? rec.spec_humidity / 1000.0f : fill_value_999;
+      dbt[i] = validv(rec.val_dry_bulb_temp,     rec.dry_bulb_temp)     ? rec.dry_bulb_temp + 273.15f : fill_value_999;
+      sst[i] = validv(rec.val_water_temperature, rec.water_temperature) ? rec.water_temperature + 273.15f : fill_value_999;
     }
 
     handle_err(nc_put_vara_float(ncid, time_id, start, edge, measurement_time.data()));

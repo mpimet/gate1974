@@ -492,12 +492,12 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
                       "from data in archive directory 3.36.21.102-3.60.02.105_19740601-19740930."
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
-       & 'seconds since ',                        &
+       & 'seconds since ',                 &
        & metadata%time_start%year,   '-',  &
        & metadata%time_start%month,  '-',  &
        & metadata%time_start%day,    ' ',  &
-       & 0,                                      ':',  &
-       & 0,                                      ':',  &
+       & 0,                          ':',  &
+       & 0,                          ':',  &
        & 0
 
   position_start_lon = metadata%lon_start%deg +      &
@@ -539,16 +539,16 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
   wd_id =  define_variable_and_attribute_real( &
-       ncid, dimids, 'ws', 'wind_speed', 'wind speed', metadata%wind_unit, -1.0)
+       ncid, dimids, 'wd', 'wind_from_direction', 'wind from direction', metadata%wind_dir_unit, -1.0)
   
   ws_id =  define_variable_and_attribute_real( &
-       ncid, dimids, 'wd', 'wind_from_direction', 'wind from direction', metadata%wind_dir_unit, -1.0)
+       ncid, dimids, 'ws', 'wind_speed', 'wind speed', metadata%wind_unit, -1.0)
   
   dbt_id = define_variable_and_attribute_real( &
        ncid, dimids, 'dbt', 'dry_bulb_temperature', 'dry bulb temperature', metadata%temperature_unit, 999.9)
 
   q_id = define_variable_and_attribute_real( &
-       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%specific_humidity_unit, 999.0)
+       ncid, dimids, 'q', 'specific_humidity', 'specific humidity', metadata%specific_humidity_unit, 999.9)
 
   sst_id = define_variable_and_attribute_real( &
        ncid, dimids, 'sst', 'sea_surface_temperature', 'sea surface temperature', metadata%temperature_unit, 999.9)
