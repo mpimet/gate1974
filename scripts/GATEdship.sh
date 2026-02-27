@@ -35,6 +35,20 @@ process_platform() {
     mv ${infile}*.nc ../.
   done
   [ "$keepFiles" = false ] && rm -r ${out_path}
+
+  # c++ variant for GATE and COMM Ships sst
+  if [ "${ship}" = "GATE_AND_COMM_SHIPS" ]; then
+    echo Running c++ version for ${ship}
+    out_path="${outbasedir}/c++/${ship_dirs[$ship]}"
+    [ ! -d "$out_path" ] && mkdir -p "$out_path"
+    cd ${out_path}
+    cp ${in_path}/* . 
+    for infile in `ls -1`; do
+      ${thisdir}/GATEandCOMM_SHIPS $infile
+      mv ${infile}*.nc ../.
+    done
+    [ "$keepFiles" = false ] && rm -r ${out_path}
+  fi
 }
 
 # Function to print help message
