@@ -21,10 +21,10 @@ struct GATE_metadata_type {
     Position lon_start;
     Position lat_end;
     Position lon_end;
-    std::string temperature_unit = "kelvin";
-    std::string humidity_unit = "kg/kg";
-    std::string wind_unit = "m/s";
-    std::string wind_dir_unit = "deg";
-    std::string pressure_unit = "Pa";
+    static constexpr std::string temperature_unit = "kelvin";
+    static constexpr std::string humidity_unit = "kg/kg";
+    static constexpr std::string wind_unit = "m/s";
+    static constexpr std::string wind_dir_unit = "deg";
+    static constexpr std::string pressure_unit = "Pa";
 };
 #endif
