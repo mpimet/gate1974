@@ -2,6 +2,8 @@
 
 # GATE Data Processing Pipeline
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21218047.svg)](https://doi.org/10.5281/zenodo.21218047)
+
 *René Redler, Max Planck Institute for Meteorology, Hamburg*
 
 **Last updated: 13 February 2026**
