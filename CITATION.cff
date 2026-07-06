@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "GATE Data Processing Pipeline"
+version: 3.2
+license: "MIT"
+type: software
+message: "If you use this software, please cite it as below."
+abstract: "Processing a subset of data collected during the Global Atmospheric Research Program's (GARP) Atlantic Tropical Experiment (GATE) in summer 1974."
+authors:
+  - given-names: René
+    family-names: Redler
+    affiliation: Max Planck Institute for Meteorology
+    orcid: "https://orcid.org/0000-0003-3117-3724"
+keywords:
+  - observation
+  - atmospheric science
