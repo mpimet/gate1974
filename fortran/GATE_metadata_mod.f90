@@ -16,10 +16,25 @@ module GATE_metadata_mod
   end type position
 
   type :: GATE_metadata_type
-     character(len=32) :: platform
-     character(len=32) :: shipname1
-     character(len=32) :: shipname2
-     character(len=32) :: aircraftname
+
+     character(len= 32) :: platform
+     character(len=128) :: chief_scientist
+     character(len= 32) :: shipname1
+     character(len= 32) :: shipname2
+     character(len= 32) :: aircraftname
+     character(len= 80) :: title
+     character(len=300) :: summary
+     character(len= 80) :: source
+     character(len= 64) :: keywords
+     character(len= 32) :: featureType
+     character(len= 32) :: instrument
+ 
+     character(len= 64) :: references     = 'https://www.eol.ucar.edu/field_projects/gate'
+     character(len= 32) :: provider_name  = 'René Redler'
+     character(len= 64) :: provider_id    = 'https://orcid.org/0000-0003-3117-3724'
+     character(len= 32) :: provider_email  = 'rene.redler@mpimet.mpg.de'
+     character(len= 16) :: license        = 'CC-BY-4.0' 
+     character(len= 32) :: conventions    = 'ACDD-1.3, CF-1.12'
 
      type (datetime)   :: time
      type (datetime)   :: time_start

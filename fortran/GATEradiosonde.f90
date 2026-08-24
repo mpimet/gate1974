@@ -103,6 +103,7 @@ subroutine convert_data (infile)
 
   ! array for keeping the whole profile
   type (GATE_radiosonde_type), allocatable :: radiosondedata(:)
+
   ! launch and field metadata
   type (GATE_metadata_type) :: metadata
 
@@ -129,6 +130,10 @@ subroutine convert_data (infile)
 
         if ( i == 3 ) then
            metadata%platform = line(16:39)
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%platform)), " ", &
+                           trim(adjustl(metadata%chief_scientist)) 
         end if
 
         if ( i == 4 ) then
@@ -170,11 +175,27 @@ subroutine convert_data (infile)
      case ( iostat_end )
         write ( * , * ) 'Unexpectedly reached end of file in section 1!'
         exit
+
      case default
         write ( * , * ) 'Unexpected error when reading section 1!'
         exit
+
      end select
+ 
   end do
+
+  metadata%title           = 'GATE radiosonde atmospheric profiles'
+  metadata%summary         = 'Quality-controlled radiosonde atmospheric profiles from the '                       // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974). ' // &
+                             'Data were collected from research vessels Bidassoa, Charterer, Dallas, Endurer, '   // &
+                             'Gilliss, Meteor, Oceanographer, Quadra, Researcher, and Vanguard'
+  metadata%chief_scientist = 'Schaefer, Jeffries, Garstang, Flawn, Grose, Hansen, Bolton, Melanson, English, '    // &
+                             'Sparkman, Poindexter, and Young'
+  metadata%source          = 'radiosonde'
+  metadata%keywords        = 'GATE, radiosonde, atmospheric profiles, weather, meteorology'
+  metadata%featureType     = 'profile'
+  metadata%platform        = ''
+  metadata%instrument      = 'radiosonde'
 
   write ( * , * ) trim(infile), ' contains ', no_of_levels, ' levels.'
 
@@ -379,8 +400,49 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   verr_id = define_variable_and_attribute_real( &
        ncid, dimids, 'v_err', 'northward_wind_error', 'northward wind error', metadata%wind_unit, 99.9)
 
+  
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "title", len(trim(adjustl(metadata%title))), &
+       trim(adjustl(metadata%title))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "summary", len(trim(adjustl(metadata%summary))), &
+       trim(adjustl(metadata%summary))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "source", len(trim(adjustl(metadata%source))), &
+       trim(adjustl(metadata%source))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "keywords", len(trim(adjustl(metadata%keywords))), &
+       trim(adjustl(metadata%keywords))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "featureType", len(trim(adjustl(metadata%featureType))), &
+       trim(adjustl(metadata%featureType))))
+
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
        trim(adjustl(metadata%platform))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "instrument", len(trim(adjustl(metadata%instrument))), &
+       trim(adjustl(metadata%instrument))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "references", len(trim(adjustl(metadata%references))), &
+       trim(adjustl(metadata%references))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "creator_name", len(trim(adjustl(metadata%chief_scientist))), &
+       trim(adjustl(metadata%chief_scientist))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_name", len(trim(adjustl(metadata%provider_name))), &
+       trim(adjustl(metadata%provider_name))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_email", len(trim(adjustl(metadata%provider_email))), &
+       trim(adjustl(metadata%provider_email))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_id", len(trim(adjustl(metadata%provider_id))), &
+       trim(adjustl(metadata%provider_id))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "license", len(trim(adjustl(metadata%license))), &
+       trim(adjustl(metadata%license))))
+
+  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "conventions", len(trim(adjustl(metadata%conventions))), &
+       trim(adjustl(metadata%conventions))))
+
 
   write ( position_str, '(F9.4,A1,F8.4)' ) position_start_lon, ' ', position_start_lat 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "launch_start_position", 18, position_str))
