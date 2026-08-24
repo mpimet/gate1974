@@ -265,6 +265,10 @@ subroutine convert_data (infile)
 
         if ( i == 3 ) then
            metadata%shipname2 = line(16:39)
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%shipname1)), " ", &
+                           trim(adjustl(metadata%chief_scientist))
         end if
 
         if ( i == 7 ) then
@@ -334,6 +338,16 @@ subroutine convert_data (infile)
         exit
      end select
   end do
+
+  metadata%title           = 'GATE buoy measurements'
+  metadata%summary         = 'Buoy measurements from RV Meteor collected during '                  // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+  metadata%chief_scientist = 'Lutz Hasse and Ernst Augstein'
+  metadata%source          = 'ship'
+  metadata%keywords        = 'GATE, ship, atmospheric measurements, ocean measurements, weather, meteorology, oceanography'
+  metadata%featureType     = 'profile'
+  metadata%platform        = ''
+  metadata%instrument      = 'buoy'
 
   ! file section 2, metadata of sampled variables, 48 lines
 
@@ -565,6 +579,8 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
 
   write ( position_str, '(F9.4,A1,F8.4)' ) position_end_lon, ' ', position_end_lat
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "buoy_end_position", 18, position_str))
+
+  call set_metadata(ncid, metadata)
   
   call handle_err(nf_enddef (ncid))
 

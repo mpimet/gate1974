@@ -284,7 +284,11 @@ subroutine convert_data (infile)
 
         if ( i == 2 ) then
            metadata%shipname1 = line(16:39)
-        end if
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%shipname1)), " ", &
+                           trim(adjustl(metadata%chief_scientist))
+         end if
 
         if ( i == 7 ) then
            read(line(17:25),'(F9.1)') interval
@@ -320,6 +324,28 @@ subroutine convert_data (infile)
         exit
      end select
   end do
+  
+  metadata%title           = 'GATE ship measurements'
+
+  if ( trim(adjustl(metadata%shipname1)) == "DALLAS" ) then
+    metadata%summary         = 'Ship measurements from RV Dallas collected during '                  // &
+                               'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+    metadata%chief_scientist = 'Micheal Garstang'
+  else if ( trim(adjustl(metadata%shipname1)) == "JAMES_M_GILLISS" .or. trim(adjustl(metadata%shipname1)) == "FAYE" ) then
+    metadata%summary         = 'Ship measurements from RV James M. Gilliss collected during '                     // &
+                               'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+    metadata%chief_scientist = 'Peter L. Grose'
+  else if ( trim(adjustl(metadata%shipname1)) == "RESEARCHER" ) then
+    metadata%summary         = 'Ship measurements from RV Researcher collected during '                  // &
+                               'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+    metadata%chief_scientist = 'James K. Sparkman'
+  endif
+
+  metadata%source          = 'ship'
+  metadata%keywords        = 'GATE, ship, atmospheric measurements, ocean measurements, weather, meteorology, oceanography'
+  metadata%featureType     = 'trajectory'
+  metadata%platform        = ''
+  metadata%instrument      = 'various instruments'
 
   ! file section 2, metadata of sampled variables
 
@@ -538,6 +564,8 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
   call handle_err(nf_put_att_real(ncid, NF_GLOBAL, "Average_interval", NF_REAL, 1, real(metadata%interval)))
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
+
+  call set_metadata(ncid, metadata)
 
   call handle_err(nf_enddef (ncid))
 

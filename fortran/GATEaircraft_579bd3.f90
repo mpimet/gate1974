@@ -170,6 +170,10 @@ subroutine convert_data (infile)
 
         if ( i == 2 ) then
            metadata%aircraftname = line(16:39)
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%aircraftname)), " ", &
+                           trim(adjustl(metadata%chief_scientist))
         end if
 
         if ( i == 4 ) then
@@ -206,6 +210,16 @@ subroutine convert_data (infile)
         exit
      end select
   end do
+
+  metadata%title           = 'GATE aircraft atmospheric in-flight measurements'
+  metadata%summary         = 'In-flight measurements from Douglas DC-7C CEV/AMOR collected during '                  // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+  metadata%chief_scientist = 'Blot, LeJeune, Roumiguieres and Sap'
+  metadata%source          = 'aircraft'
+  metadata%keywords        = 'GATE, aircraft, atmospheric in-flight measurements, weather, meteorology'
+  metadata%featureType     = 'trajectory'
+  metadata%platform        = ''
+  metadata%instrument      = 'various instruments'
 
   ! file section 2, metadata of sampled variables
 
@@ -445,6 +459,8 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
        trim(adjustl(metadata%aircraftname))))
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
+
+  call set_metadata(ncid, metadata)
 
   call handle_err(nf_enddef (ncid))
 

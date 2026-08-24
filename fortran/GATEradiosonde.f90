@@ -2,6 +2,7 @@
 module GATEradiosonde_mod
 
   use GATE_metadata_mod
+  use GATE_netcdf_mod, only : set_metadata
 
   type :: GATE_radiosonde_type
      ! do not change the sequence within this type
@@ -400,55 +401,13 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   verr_id = define_variable_and_attribute_real( &
        ncid, dimids, 'v_err', 'northward_wind_error', 'northward wind error', metadata%wind_unit, 99.9)
 
-  
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "title", len(trim(adjustl(metadata%title))), &
-       trim(adjustl(metadata%title))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "summary", len(trim(adjustl(metadata%summary))), &
-       trim(adjustl(metadata%summary))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "source", len(trim(adjustl(metadata%source))), &
-       trim(adjustl(metadata%source))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "keywords", len(trim(adjustl(metadata%keywords))), &
-       trim(adjustl(metadata%keywords))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "featureType", len(trim(adjustl(metadata%featureType))), &
-       trim(adjustl(metadata%featureType))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
-       trim(adjustl(metadata%platform))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "instrument", len(trim(adjustl(metadata%instrument))), &
-       trim(adjustl(metadata%instrument))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "references", len(trim(adjustl(metadata%references))), &
-       trim(adjustl(metadata%references))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "creator_name", len(trim(adjustl(metadata%chief_scientist))), &
-       trim(adjustl(metadata%chief_scientist))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_name", len(trim(adjustl(metadata%provider_name))), &
-       trim(adjustl(metadata%provider_name))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_email", len(trim(adjustl(metadata%provider_email))), &
-       trim(adjustl(metadata%provider_email))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_id", len(trim(adjustl(metadata%provider_id))), &
-       trim(adjustl(metadata%provider_id))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "license", len(trim(adjustl(metadata%license))), &
-       trim(adjustl(metadata%license))))
-
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "conventions", len(trim(adjustl(metadata%conventions))), &
-       trim(adjustl(metadata%conventions))))
-
-
   write ( position_str, '(F9.4,A1,F8.4)' ) position_start_lon, ' ', position_start_lat 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "launch_start_position", 18, position_str))
 
   write ( position_str, '(F9.4,A1,F8.4)' ) position_end_lon, ' ', position_end_lat 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "launch_end_position", 18, position_str))
+
+  call set_metadata(ncid, metadata)
 
   call handle_err(nf_enddef (ncid))
 

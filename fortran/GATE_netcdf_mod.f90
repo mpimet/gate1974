@@ -2,7 +2,9 @@
 ! Fortran module to define NetCDF variables and attributes
 !
 
-module gate_netcdf_mod
+module GATE_netcdf_mod
+
+  use GATE_metadata_mod, only : GATE_metadata_type
 
   include 'netcdf.inc'
 
@@ -13,6 +15,7 @@ module gate_netcdf_mod
   public :: define_variable_and_attribute_double, &
             define_variable_and_attribute_real,   &
             define_variable_and_attribute_int,    &
+            set_metadata,                         &
             handle_err
 
   contains
@@ -127,6 +130,55 @@ module gate_netcdf_mod
 
     end function define_variable_and_attribute_int
 
-end module gate_netcdf_mod
+    subroutine set_metadata(ncid, metadata)
+
+      integer, intent(in) :: ncid
+      type (GATE_metadata_type), intent(in) :: metadata
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "title", len(trim(adjustl(metadata%title))), &
+           trim(adjustl(metadata%title))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "summary", len(trim(adjustl(metadata%summary))), &
+           trim(adjustl(metadata%summary))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "source", len(trim(adjustl(metadata%source))), &
+           trim(adjustl(metadata%source))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "keywords", len(trim(adjustl(metadata%keywords))), &
+           trim(adjustl(metadata%keywords))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "featureType", len(trim(adjustl(metadata%featureType))), &
+           trim(adjustl(metadata%featureType))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
+           trim(adjustl(metadata%platform))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "instrument", len(trim(adjustl(metadata%instrument))), &
+           trim(adjustl(metadata%instrument))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "references", len(trim(adjustl(metadata%references))), &
+           trim(adjustl(metadata%references))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "creator_name", len(trim(adjustl(metadata%chief_scientist))), &
+           trim(adjustl(metadata%chief_scientist))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_name", len(trim(adjustl(metadata%provider_name))), &
+           trim(adjustl(metadata%provider_name))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_email", len(trim(adjustl(metadata%provider_email))), &
+           trim(adjustl(metadata%provider_email))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "provider_id", len(trim(adjustl(metadata%provider_id))), &
+           trim(adjustl(metadata%provider_id))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "license", len(trim(adjustl(metadata%license))), &
+           trim(adjustl(metadata%license))))
+
+      call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "conventions", len(trim(adjustl(metadata%conventions))), &
+           trim(adjustl(metadata%conventions))))
+
+    end subroutine set_metadata
+
+end module GATE_netcdf_mod
 
 
