@@ -27,16 +27,13 @@ import zarr
 
 ```python
 if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
-    rootpath=Path("/Users/m300083/Projekte/GATE_v3.2p1/RADIOSONDE/")
+    rootpath=Path("/Users/m300083/Projekte/GATE_v3.2p1/AIRCRAFT/")
 else:
-    rootpath=Path("/work/mh0287/m300083/GATE_v3.2p1/RADIOSONDE/")
+    rootpath=Path("/work/mh0287/m300083/GATE_v3.2p1/AIRCRAFT/")
 
-instruments = [
-    "METEOR", "BIDASSOA", "CHARTERER", "DALLAS", "ENDURER",
-    "GILLISS", "OCEANOGRPR", "QUADRA", "RESEARCHER", "VANGUARD"
-]
+instruments = [ "C130_DROPSONDE", "C135_DROPSONDE" ]
 
-ZARR_STORE='GATE_RADIOSONDES.zarr'
+ZARR_STORE='GATE_DROPSONDES.zarr'
 
 nc_files = []
 for inst in instruments:
@@ -75,17 +72,20 @@ for nc_file in tqdm(nc_files, desc="Processing profiles", total=len(nc_files), l
             "launch_start": launch_start,
             "launch_end": launch_end,
             "time": time_str,
+            "flight_time": ds.flight_time.values.squeeze(),
             "level": ds.level.values,
+            "lat": ds.lat.values.squeeze(),
+            "lon": ds.lon.values.squeeze(),
             "p": ds.p.values.squeeze(),
             "altitude": ds.altitude.values.squeeze(),
             "ta": ds.ta.values.squeeze(),
-            "ta_err": ds.ta_err.values.squeeze(),
+            "dew": ds.dew.values.squeeze(),
             "q": ds.q.values.squeeze(),
-            "q_err": ds.q_err.values.squeeze(),
+            "rh": ds.rh.values.squeeze(),
             "u": ds.u.values.squeeze(),
-            "u_err": ds.u_err.values.squeeze(),
             "v": ds.v.values.squeeze(),
-            "v_err": ds.v_err.values.squeeze(),
+            "ws": ds.ws.values.squeeze(),
+            "wd": ds.wd.values.squeeze(),
         }
 
         profiles_data.append(profile_data)
@@ -126,7 +126,7 @@ for i, prof in enumerate(profiles_data):
     times.append(prof["time"])
 
     # Flatten variables
-    for var_name in ["p", "altitude", "ta", "ta_err", "q", "q_err", "u", "u_err", "v", "v_err"]:
+    for var_name in ["flight_time","lat","lon","p", "altitude", "ta", "dew", "q", "rh", "u", "v", "ws", "wd"]:
         if var_name not in flat_data:
             flat_data[var_name] = []
         flat_data[var_name].append(prof[var_name])
@@ -185,17 +185,22 @@ print("✅ Zarr archive saved to "+ZARR_STORE)
 root = zarr.open(ZARR_STORE, mode='r')
 
 # Load data
-flat_p = root['p'][:]
 flat_altitude = root['altitude'][:]
-flat_ta = root['ta'][:]
-flat_q = root['q'][:]
-flat_u = root['u'][:]
-flat_v = root['v'][:]
 
-flat_ta_err = root['ta_err'][:]
-flat_q_err = root['q_err'][:]
-flat_u_err = root['u_err'][:]
-flat_v_err = root['v_err'][:]
+flat_lon = root['lon'][:]
+flat_lat = root['lat'][:]
+
+flat_p   = root['p'][:]
+flat_ta  = root['ta'][:]
+flat_q   = root['q'][:]
+flat_u   = root['u'][:]
+flat_v   = root['v'][:]
+
+flat_rh  = root['rh'][:]
+flat_dew = root['dew'][:]
+
+flat_ws  = root['ws'][:]
+flat_wd  = root['wd'][:]
 
 lengths = root['lengths'][:]
 times = root['time'][:]
@@ -218,17 +223,25 @@ for i in range(len(lengths)):
         'p': flat_p[start_idx:end_idx],
         'altitude': flat_altitude[start_idx:end_idx],
         'ta': flat_ta[start_idx:end_idx],
-        'ta_err': flat_ta_err[start_idx:end_idx],
+        'dew': flat_dew[start_idx:end_idx],
         'q': flat_q[start_idx:end_idx],
-        'q_err': flat_q_err[start_idx:end_idx],
+        'rh': flat_rh[start_idx:end_idx],
         'u': flat_u[start_idx:end_idx],
-        'u_err': flat_u_err[start_idx:end_idx],
         'v': flat_v[start_idx:end_idx],
-        'v_err': flat_v_err[start_idx:end_idx],
+        'ws': flat_ws[start_idx:end_idx],
+        'wd': flat_wd[start_idx:end_idx],
     }
 
     reconstructed_profiles.append(profile)
     start_idx = end_idx
 
 print(f"✅ Reconstructed {len(reconstructed_profiles)} profiles.")
+```
+
+```python
+
+```
+
+```python
+
 ```
