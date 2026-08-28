@@ -21,6 +21,42 @@ module GATEradiosonde_mod
 
   public :: GATE_radiosonde_type, GATE_metadate_type
 
+contains
+
+  function capitalize_first_letter(s) result(capitalized)
+    character(len=*), intent(in) :: s
+    character(len=len(s)) :: capitalized
+    integer :: i, len_s, first_alpha_pos
+
+    ! Trim and adjust left
+    capitalized = trim(adjustl(s))
+
+    ! Convert to lowercase
+    do i = 1, len_trim(capitalized)
+        if (capitalized(i:i) >= 'A' .and. capitalized(i:i) <= 'Z') then
+            capitalized(i:i) = char(ichar(capitalized(i:i)) + 32)
+        end if
+    end do
+
+    ! Find first alphabetic character
+    first_alpha_pos = -1
+    do i = 1, len_trim(capitalized)
+        if (capitalized(i:i) >= 'A' .and. capitalized(i:i) <= 'Z') then
+            first_alpha_pos = i
+            exit
+        else if (capitalized(i:i) >= 'a' .and. capitalized(i:i) <= 'z') then
+            first_alpha_pos = i
+            exit
+        end if
+    end do
+
+    ! Capitalize first alphabetic character
+    if (first_alpha_pos > 0) then
+        capitalized(first_alpha_pos:first_alpha_pos) = &
+            char(ichar(capitalized(first_alpha_pos:first_alpha_pos)) - 32)
+    end if
+  end function capitalize_first_letter
+
 end module GATEradiosonde_mod
 
 ! ----------------------
@@ -130,7 +166,7 @@ subroutine convert_data (infile)
      case ( 0 )
 
         if ( i == 3 ) then
-           metadata%platform = line(16:39)
+           metadata%platform = capitalize_first_letter(line(16:39))
            metadata%chief_scientist = line(50:73)
            write ( * , * ) "Processing ", &
                            trim(adjustl(metadata%platform)), " ", &
@@ -195,7 +231,7 @@ subroutine convert_data (infile)
   metadata%source          = 'radiosonde'
   metadata%keywords        = 'GATE, radiosonde, atmospheric profiles, weather, meteorology'
   metadata%featureType     = 'profile'
-  metadata%platform        = ''
+  metadata%platform        = metadata%platform
   metadata%instrument      = 'radiosonde'
 
   write ( * , * ) trim(infile), ' contains ', no_of_levels, ' levels.'
