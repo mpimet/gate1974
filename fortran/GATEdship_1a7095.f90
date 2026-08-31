@@ -300,7 +300,7 @@ subroutine convert_data (infile)
   if ( trim(adjustl(metadata%shipname1)) == "METEOR" ) then
     metadata%summary         = 'Ship measurements from RV Meteor collected during '                  // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
-    metadata%chief_scientist = 'Lutz Hasse and Ernst Augstein'
+    metadata%chief_scientist = 'Lutz Hasse, Ernst Augstein'
   else if ( trim(adjustl(metadata%shipname1)) == "FAY" .or. trim(adjustl(metadata%shipname1)) == "FAYE" ) then
     metadata%summary         = 'Ship measurements from RV Fay collected during '                     // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'

@@ -211,9 +211,9 @@ subroutine convert_data (infile)
   end do
 
   metadata%title           = 'GATE aircraft atmospheric in-flight measurements'
-  metadata%summary         = 'In-flight measurements from U.K.HERCULES XV208 collected during '                  // &
+  metadata%summary         = 'In-flight measurements from UK HERCULES XV208 collected during '                  // &
                              'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
-  metadata%chief_scientist = 'D.G. James and J.M. Nicholls'
+  metadata%chief_scientist = 'D.G. James, J.M. Nicholls'
   metadata%source          = 'aircraft'
   metadata%keywords        = 'GATE, aircraft, atmospheric in-flight measurements, weather, meteorology'
   metadata%featureType     = 'trajectory'

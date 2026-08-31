@@ -24,6 +24,7 @@ module GATEradiosonde_mod
 contains
 
   function capitalize_first_letter(s) result(capitalized)
+
     character(len=*), intent(in) :: s
     character(len=len(s)) :: capitalized
     integer :: i, len_s, first_alpha_pos
@@ -55,6 +56,7 @@ contains
         capitalized(first_alpha_pos:first_alpha_pos) = &
             char(ichar(capitalized(first_alpha_pos:first_alpha_pos)) - 32)
     end if
+
   end function capitalize_first_letter
 
 end module GATEradiosonde_mod
@@ -225,9 +227,9 @@ subroutine convert_data (infile)
   metadata%summary         = 'Quality-controlled radiosonde atmospheric profiles from the '                       // &
                              'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974). ' // &
                              'Data were collected from research vessels Bidassoa, Charterer, Dallas, Endurer, '   // &
-                             'Gilliss, Meteor, Oceanographer, Quadra, Researcher, and Vanguard'
+                             'Gilliss, Meteor, Oceanographer, Quadra, Researcher, and Vanguard.'
   metadata%chief_scientist = 'Schaefer, Jeffries, Garstang, Flawn, Grose, Hansen, Bolton, Melanson, English, '    // &
-                             'Sparkman, Poindexter, and Young'
+                             'Sparkman, Poindexter, Young'
   metadata%source          = 'radiosonde'
   metadata%keywords        = 'GATE, radiosonde, atmospheric profiles, weather, meteorology'
   metadata%featureType     = 'profile'

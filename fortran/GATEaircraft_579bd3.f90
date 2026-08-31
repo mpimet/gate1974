@@ -214,7 +214,7 @@ subroutine convert_data (infile)
   metadata%title           = 'GATE aircraft atmospheric in-flight measurements'
   metadata%summary         = 'In-flight measurements from Douglas DC-7C CEV/AMOR collected during '                  // &
                              'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
-  metadata%chief_scientist = 'Blot, LeJeune, Roumiguieres and Sap'
+  metadata%chief_scientist = 'Blot, LeJeune, Roumiguieres, Sap'
   metadata%source          = 'aircraft'
   metadata%keywords        = 'GATE, aircraft, atmospheric in-flight measurements, weather, meteorology'
   metadata%featureType     = 'trajectory'
