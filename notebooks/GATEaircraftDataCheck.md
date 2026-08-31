@@ -5,11 +5,11 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.18.1
+      jupytext_version: 1.16.4
   kernelspec:
-    display_name: venv-3.12.9
+    display_name: Python 3 (ipykernel)
     language: python
-    name: venv-3.12.9
+    name: python3
 ---
 
 ```python
@@ -32,11 +32,10 @@ from termcolor import colored
 
 ```python
 if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
-    rootpath="/Users/m300083/Projekte/GATE_v3.2/AIRCRAFT/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2p1/AIRCRAFT/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh1570/m300083/GATE_v3.2p1/AIRCRAFT/"
-    %env CDO /sw/spack-levante/cdo-2.6.0-akkxhz/bin/cdo
+    rootpath="/work/mh0287/m300083/GATE_v3.2p1/AIRCRAFT/"
 
 cdo = Cdo(tempdir=rootpath+'tmp')
 
@@ -63,14 +62,19 @@ cdo = Cdo(tempdir=rootpath+'tmp')
 #path=rootpath+"DC-7_CEV"; PLATFORM="DC-7"; INTERVALL="1S"
 #path=rootpath+"DC-7_CEV"; PLATFORM="DC-7"; INTERVALL="1M"
 
-#path=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208a"; INTERVALL="_100F"
-#path=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208a"; INTERVALL="_001F"
-#path=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208b"; INTERVALL="_100F"
-#path=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208b"; INTERVALL="_001F"
+#pathA=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208"; INTERVALL="_100F"
+#pathB=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_100F"
+#pathA=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208"; INTERVALL="_001F"
+#pathB=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_001F"
 
-path=rootpath+"39_CHARLIE"; PLATFORM="NOAA DC-6 39 Charlie"; INTERVALL=""
+#path=rootpath+"39_CHARLIE"; PLATFORM="NOAA DC-6 39 Charlie"; INTERVALL=""
 
-files = sorted(glob.glob(f"{path}/*{INTERVALL}.nc"))
+if ( PLATFORM == "UK Hercules XV208" ) :
+    filesA = sorted(glob.glob(f"{pathA}/*{INTERVALL}.nc"))
+    filesB = sorted(glob.glob(f"{pathB}/*{INTERVALL}.nc"))
+    files = filesA + filesB
+else:
+    files = sorted(glob.glob(f"{path}/*{INTERVALL}.nc"))
 ```
 
 ```python
@@ -286,19 +290,15 @@ if exist:
 ```
 
 ```python
-print ( data )
-```
-
-```python
 try:
     da=data.std_ta
     exist=True
 except:
-    print(colored("WARNING: std of temperature not available!", color="red", attrs=["bold"])) 
+    print(colored("WARNING: std of ta not available!", color="red", attrs=["bold"])) 
     exist=False
 
 scatter_plot = da.hvplot.scatter(x='time', s=1, height=400, responsive=True,
-            title=PLATFORM+'Std of Temperature',
+            title=PLATFORM+' Altitude',
             xlabel='Time',
             ylabel=f"{da.name} ({da.attrs.get('units', '')})")
 
@@ -309,11 +309,11 @@ if exist:
 **Create zarr archive**
 
 ```python
-data.to_zarr(f"{PLATFORM}{INTERVALL}.zarr", mode='w')
+data.to_zarr(f"{PLATFORM.replace(" ", "_")}{INTERVALL}.zarr", mode='w')
 ```
 
 ```python
-dzarr = xr.open_zarr(f"{PLATFORM}{INTERVALL}.zarr")
+dzarr = xr.open_zarr(f"{PLATFORM.replace(" ", "_")}{INTERVALL}.zarr")
 print (dzarr)
 ```
 

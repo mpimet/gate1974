@@ -32,10 +32,10 @@ from termcolor import colored
 
 ```python
 if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
-    rootpath="/Users/m300083/Projekte/GATE_v3.2/DSHIP/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2p1/DSHIP/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.2/DSHIP/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2p1/DSHIP/"
 
 Cdo.env = {"SKIP_SAME_TIME": "1"}
 cdo = Cdo(tempdir=rootpath+'tmp')
@@ -50,7 +50,7 @@ cdo = Cdo(tempdir=rootpath+'tmp')
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_0180S"
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_0600S"
 
-path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_3600S"
+#path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_3600S"
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_1800S"
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_0600S"
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_0180S"
@@ -58,7 +58,7 @@ path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_3600S"
 #path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_3600S"
 #path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_1800S"
 #path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_0600S"
-#path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_0180S"
+path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_0180S"
 
 list=path+"/*"+INTERVALL+".nc"
 files = sorted(glob.glob(f"{list}"))
@@ -196,11 +196,11 @@ da.hvplot.scatter(x='time', s=2, height=400, responsive=True,
 ```
 
 ```python
-data.to_zarr(f"{PLATFORM}{INTERVALL}.zarr", mode='w')
+data.to_zarr(f"{PLATFORM.replace(" ", "_")}{INTERVALL}.zarr", mode='w')
 ```
 
 ```python
-dzarr = xr.open_zarr(f"{PLATFORM}{INTERVALL}.zarr")
+dzarr = xr.open_zarr(f"{PLATFORM.replace(" ", "_")}{INTERVALL}.zarr")
 ```
 
 ```python

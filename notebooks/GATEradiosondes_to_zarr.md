@@ -147,6 +147,8 @@ times = np.array(times, dtype='U')
 **Save to Zarr with Ragged Structure**
 
 ```python
+import textwrap
+
 store = zarr.DirectoryStore(ZARR_STORE)
 root  = zarr.group(store=store, overwrite=True)
 
@@ -168,8 +170,15 @@ root.array('launch_end', data=launch_ends, chunks=(100,), overwrite=True)
 root.array('time', data=times, chunks=(100,), overwrite=True)
 
 # Save global attributes
-root.attrs['title'] = "GATE radiosonde atmospheric profiles (ragged Zarr)"
-root.attrs['description'] = "Combined vertical profiles from multiple vessels, stored with ragged array structure."
+root.attrs['title'] = "GATE radiosonde atmospheric profiles"
+root.attrs['summary'] = textwrap.dedent("""\
+    Quality-controlled radiosonde atmospheric profiles from the 
+    Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).
+    Data were collected from research vessels Bidassoa, Charterer, Dallas, Endurer,
+    Gilliss, Meteor, Oceanographer, Quadra, Researcher, and Vanguard.""")
+root.attrs['chief_scientist'] = "Schaefer, Jeffries, Garstang, Flawn, Grose, Hansen, Bolton, Melanson, English, Sparkman, Poindexter, Young"
+root.attrs['featureType'] = "profile"
+root.attrs['keywords'] = "GATE, radiosonde, atmospheric profiles, weather, meteorology"
 root.attrs['source'] = "radiosonde"
 root.attrs['conventions'] = "ACDD-1.3, CF-1.12"
 root.attrs['license'] = "CC-BY-4.0"
@@ -231,4 +240,12 @@ for i in range(len(lengths)):
     start_idx = end_idx
 
 print(f"✅ Reconstructed {len(reconstructed_profiles)} profiles.")
+```
+
+```python
+print(root.attrs['summary'])
+```
+
+```python
+
 ```
