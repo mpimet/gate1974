@@ -41,7 +41,7 @@ if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
     rootpath="/Users/m300083/Projekte/GATE_v3.2/RADIOSONDE/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.2/RADIOSONDE/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2p1/RADIOSONDE/"
 
 METEOR     = glob.glob(rootpath+'METEOR/*.nc')
 BIDASSOA   = glob.glob(rootpath+'BIDASSOA/*.nc')
@@ -125,16 +125,4 @@ legend = ax.legend(loc='upper left')
 
 fig.savefig('radiosonde_positions.png', dpi=300)
 plt.show()
-```
-
-```python
-
-```
-
-```python
-
-```
-
-```python
-
 ```
