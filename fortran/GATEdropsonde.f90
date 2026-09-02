@@ -155,7 +155,7 @@ subroutine convert_data (infile)
      case ( 0 )
 
         if ( i == 2 ) then
-           metadata%platform = line(16:39)
+           metadata%platform = line(16:20)
            metadata%chief_scientist = line(50:73)
            write ( * , * ) "Processing ", &
                            trim(adjustl(metadata%platform)), " ", &
@@ -225,7 +225,7 @@ subroutine convert_data (infile)
   metadata%source          = 'dropsonde'
   metadata%keywords        = 'GATE, dropsonde, atmospheric profiles, weather, meteorology'
   metadata%featureType     = 'profile'
-  metadata%platform        = ''
+  ! metadata%platform        = ''
   metadata%instrument      = 'dropsonde'
 
   ! file section 2, metadata of sampled variables
