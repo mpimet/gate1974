@@ -155,7 +155,11 @@ subroutine convert_data (infile)
      case ( 0 )
 
         if ( i == 2 ) then
-           metadata%platform = line(16:39)
+           metadata%platform = line(16:20)
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%platform)), " ", &
+                           trim(adjustl(metadata%chief_scientist))
         end if
 
         if ( i == 4 ) then
@@ -212,6 +216,17 @@ subroutine convert_data (infile)
         exit
      end select
   end do
+
+  metadata%title           = 'GATE aircarft dropsonde measurements'
+  metadata%summary         = 'Quality-controlled dropsonde atmospheric profiles from the '                       // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).' // &
+                             'Data were collected from NCAR aircrafts C130 (N6541) and C135 (AF12674).'  
+  metadata%chief_scientist = 'Smalley'
+  metadata%source          = 'dropsonde'
+  metadata%keywords        = 'GATE, dropsonde, atmospheric profiles, weather, meteorology'
+  metadata%featureType     = 'profile'
+  ! metadata%platform        = ''
+  metadata%instrument      = 'dropsonde'
 
   ! file section 2, metadata of sampled variables
 
@@ -468,6 +483,8 @@ subroutine write_netcdf ( infile, no_of_levels, dropsondedata, metadata )
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "launch_end_position", 18, position_str))
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
+
+  call set_metadata(ncid, metadata)
 
   call handle_err(nf_enddef (ncid))
 

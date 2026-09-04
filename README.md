@@ -8,7 +8,7 @@
 
 **Last updated: 13 February 2026**
 
-**Version 3.2**
+**Version 3.2p1**
 
 Processing a subset of data collected during the Global Atmospheric Research Program's (GARP) Atlantic Tropical Experiment (GATE) in summer 1974, see J.P. Kuettner, 1974: General description and central program of GATE, BAMS, 55, pp 526–530.
 
@@ -81,7 +81,7 @@ GATEsort.sh /<path to>/DATA/GATE/3.64.02.101-3.69.02.104_19740601-19740930
 
 | Program | Description |
 | - | - |
-| `GATEdropsonde.f90`       | Reads and writes GATE C130 and C130 aircraft dropsonde data |
+| `GATEdropsonde.f90`       | Reads and writes GATE C130 and C135 aircraft dropsonde data |
 | `GATEbuoy_meteor.f90`     | Reads and writes GATE Meteor buoy data |
 | `GATEradiosonde.f90`      | Reads and writes GATE radiosonde files: CHARTERER, DALLAS, ENDURER, GILLISS, METEOR, OCEANOGRPR, QUADRA, RESEARCHER, VANGUARD (38aca3), BIDASSOA (c598b7) |
 | `GATEdship_f61f70.f90`    | GATE_AND_COMM_SHIP SST gridded data |
@@ -143,4 +143,11 @@ GATEsort.sh /<path to>/DATA/GATE/3.64.02.101-3.69.02.104_19740601-19740930
 ## Notes
 
 - **DALLAS/fdfbef**: Some files contain data with timestamps earlier than the indicated start of measurements.
+
+## Change log
+
+**v3.2p1**
+
+- writing of additional metadata targetting zarr store data browser
+- updates of notebooks for proper conversion of NetCDF files to zarr
 

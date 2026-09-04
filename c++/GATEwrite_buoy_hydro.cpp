@@ -88,6 +88,8 @@ write_netcdf_buoy_hydro( std::string const& infile,
     std::string position_end_str = position_end_str_stream.str();
     handle_err(nc_put_att_text(ncid, NC_GLOBAL, "buoy_end_position", position_end_str.length(), position_end_str.c_str()));
 
+    set_metadata(ncid, metadata);
+
     handle_err(nc_enddef(ncid));
 
     size_t start[2] = {0, 0};

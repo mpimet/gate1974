@@ -69,6 +69,8 @@ void write_netcdf_comm_ships(
 
     handle_err(nc_put_att_text(ncid, NC_GLOBAL, "history", history.length(), history.c_str()));
 
+    set_metadata(ncid, metadata);
+
     handle_err(nc_enddef(ncid));
 
     // Time axis

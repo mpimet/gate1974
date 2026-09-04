@@ -255,6 +255,10 @@ subroutine convert_data (infile)
 
         if ( i == 2 ) then
            metadata%shipname1 = line(16:39)
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%shipname1)), " ", &
+                           trim(adjustl(metadata%chief_scientist))
         end if
 
         if ( i == 7 ) then
@@ -290,6 +294,28 @@ subroutine convert_data (infile)
         exit
      end select
   end do
+
+  metadata%title           = 'GATE ship measurements'
+
+  if ( trim(adjustl(metadata%shipname1)) == "METEOR" ) then
+    metadata%summary         = 'Ship measurements from RV Meteor collected during '                  // &
+                               'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+    metadata%chief_scientist = 'Lutz Hasse, Ernst Augstein'
+  else if ( trim(adjustl(metadata%shipname1)) == "FAY" .or. trim(adjustl(metadata%shipname1)) == "FAYE" ) then
+    metadata%summary         = 'Ship measurements from RV Fay collected during '                     // &
+                               'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+    metadata%chief_scientist = 'Franceschini'
+  else if ( trim(adjustl(metadata%shipname1)) == "PLANET" ) then
+    metadata%summary         = 'Ship measurements from RV Planet collected during '                  // &
+                               'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+    metadata%chief_scientist = 'Hans Hinzpeter'
+  endif
+
+  metadata%source          = 'ship'
+  metadata%keywords        = 'GATE, ship, atmospheric measurements, ocean measurements, weather, meteorology, oceanography'
+  metadata%featureType     = 'trajectory'
+  metadata%platform        = ''
+  metadata%instrument      = 'various instruments'
 
   ! file section 2, metadata of sampled variables, 48 lines
 
@@ -435,8 +461,8 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
 
   call date_and_time(clockdate, clocktime, timezone, values)
 
-  write (history, "(A,I4,A1,I0.2,A1,I0.2,A1,3(I0.2,A1),A)" ) &
-                  "Created by Rene Redler, MPI-M on ",   &
+  write (history, "(A,I4,A1,I0.2,A1,I0.2,A1,3(I0.2,A1),A)" )      &
+                  "Created by Rene Redler, MPI-M on ",            &
                   values(1), "-", values(2), "-", values(3), " ", &
                   values(5), ":", values(6), ":", values(7), " ", &
                   "from data in archive directory 3.00.02.104-3.31.02.101_19740601-19740930."
@@ -490,6 +516,8 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
        trim(adjustl(metadata%shipname1))))
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
+
+  call set_metadata(ncid, metadata)
 
   call handle_err(nf_enddef (ncid))
 

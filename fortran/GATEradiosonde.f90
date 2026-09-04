@@ -2,6 +2,7 @@
 module GATEradiosonde_mod
 
   use GATE_metadata_mod
+  use GATE_netcdf_mod, only : set_metadata
 
   type :: GATE_radiosonde_type
      ! do not change the sequence within this type
@@ -19,6 +20,44 @@ module GATEradiosonde_mod
   end type GATE_radiosonde_type
 
   public :: GATE_radiosonde_type, GATE_metadate_type
+
+contains
+
+  function capitalize_first_letter(s) result(capitalized)
+
+    character(len=*), intent(in) :: s
+    character(len=len(s)) :: capitalized
+    integer :: i, len_s, first_alpha_pos
+
+    ! Trim and adjust left
+    capitalized = trim(adjustl(s))
+
+    ! Convert to lowercase
+    do i = 1, len_trim(capitalized)
+        if (capitalized(i:i) >= 'A' .and. capitalized(i:i) <= 'Z') then
+            capitalized(i:i) = char(ichar(capitalized(i:i)) + 32)
+        end if
+    end do
+
+    ! Find first alphabetic character
+    first_alpha_pos = -1
+    do i = 1, len_trim(capitalized)
+        if (capitalized(i:i) >= 'A' .and. capitalized(i:i) <= 'Z') then
+            first_alpha_pos = i
+            exit
+        else if (capitalized(i:i) >= 'a' .and. capitalized(i:i) <= 'z') then
+            first_alpha_pos = i
+            exit
+        end if
+    end do
+
+    ! Capitalize first alphabetic character
+    if (first_alpha_pos > 0) then
+        capitalized(first_alpha_pos:first_alpha_pos) = &
+            char(ichar(capitalized(first_alpha_pos:first_alpha_pos)) - 32)
+    end if
+
+  end function capitalize_first_letter
 
 end module GATEradiosonde_mod
 
@@ -103,6 +142,7 @@ subroutine convert_data (infile)
 
   ! array for keeping the whole profile
   type (GATE_radiosonde_type), allocatable :: radiosondedata(:)
+
   ! launch and field metadata
   type (GATE_metadata_type) :: metadata
 
@@ -128,7 +168,11 @@ subroutine convert_data (infile)
      case ( 0 )
 
         if ( i == 3 ) then
-           metadata%platform = line(16:39)
+           metadata%platform = capitalize_first_letter(line(16:39))
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%platform)), " ", &
+                           trim(adjustl(metadata%chief_scientist)) 
         end if
 
         if ( i == 4 ) then
@@ -170,11 +214,27 @@ subroutine convert_data (infile)
      case ( iostat_end )
         write ( * , * ) 'Unexpectedly reached end of file in section 1!'
         exit
+
      case default
         write ( * , * ) 'Unexpected error when reading section 1!'
         exit
+
      end select
+ 
   end do
+
+  metadata%title           = 'GATE radiosonde atmospheric profiles'
+  metadata%summary         = 'Quality-controlled radiosonde atmospheric profiles from the '                       // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974). ' // &
+                             'Data were collected from research vessels Bidassoa, Charterer, Dallas, Endurer, '   // &
+                             'Gilliss, Meteor, Oceanographer, Quadra, Researcher, and Vanguard.'
+  metadata%chief_scientist = 'Schaefer, Jeffries, Garstang, Flawn, Grose, Hansen, Bolton, Melanson, English, '    // &
+                             'Sparkman, Poindexter, Young'
+  metadata%source          = 'radiosonde'
+  metadata%keywords        = 'GATE, radiosonde, atmospheric profiles, weather, meteorology'
+  metadata%featureType     = 'profile'
+  metadata%platform        = metadata%platform
+  metadata%instrument      = 'radiosonde'
 
   write ( * , * ) trim(infile), ' contains ', no_of_levels, ' levels.'
 
@@ -379,14 +439,13 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   verr_id = define_variable_and_attribute_real( &
        ncid, dimids, 'v_err', 'northward_wind_error', 'northward wind error', metadata%wind_unit, 99.9)
 
-  call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "platform", len(trim(adjustl(metadata%platform))), &
-       trim(adjustl(metadata%platform))))
-
   write ( position_str, '(F9.4,A1,F8.4)' ) position_start_lon, ' ', position_start_lat 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "launch_start_position", 18, position_str))
 
   write ( position_str, '(F9.4,A1,F8.4)' ) position_end_lon, ' ', position_end_lat 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "launch_end_position", 18, position_str))
+
+  call set_metadata(ncid, metadata)
 
   call handle_err(nf_enddef (ncid))
 

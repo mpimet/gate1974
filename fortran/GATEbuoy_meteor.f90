@@ -23,7 +23,43 @@ module GATEbuoy_mod
 
   public :: GATE_buoy_type
 
-  contains
+contains
+  
+  function capitalize_first_letter(s) result(capitalized)
+
+    character(len=*), intent(in) :: s
+    character(len=len(s)) :: capitalized
+    integer :: i, len_s, first_alpha_pos
+
+    ! Trim and adjust left
+    capitalized = trim(adjustl(s))
+
+    ! Convert to lowercase
+    do i = 1, len_trim(capitalized)
+        if (capitalized(i:i) >= 'A' .and. capitalized(i:i) <= 'Z') then
+            capitalized(i:i) = char(ichar(capitalized(i:i)) + 32)
+        end if
+    end do
+
+    ! Find first alphabetic character
+    first_alpha_pos = -1
+    do i = 1, len_trim(capitalized)
+        if (capitalized(i:i) >= 'A' .and. capitalized(i:i) <= 'Z') then
+            first_alpha_pos = i
+            exit
+        else if (capitalized(i:i) >= 'a' .and. capitalized(i:i) <= 'z') then
+            first_alpha_pos = i
+            exit
+        end if
+    end do
+
+    ! Capitalize first alphabetic character
+    if (first_alpha_pos > 0) then
+        capitalized(first_alpha_pos:first_alpha_pos) = &
+            char(ichar(capitalized(first_alpha_pos:first_alpha_pos)) - 32)
+    end if
+ 
+  end function capitalize_first_letter
 
     subroutine date_converter(date, initial_month, year, month, day)
 
@@ -260,11 +296,15 @@ subroutine convert_data (infile)
      case ( 0 )
 
         if ( i == 2 ) then
-           metadata%shipname1 = line(16:39)
+           metadata%shipname1 = capitalize_first_letter(line(16:39))
         end if
 
         if ( i == 3 ) then
-           metadata%shipname2 = line(16:39)
+           metadata%shipname2 = capitalize_first_letter(line(16:39))
+           metadata%chief_scientist = line(50:73)
+           write ( * , * ) "Processing ", &
+                           trim(adjustl(metadata%shipname1)), " ", &
+                           trim(adjustl(metadata%chief_scientist))
         end if
 
         if ( i == 7 ) then
@@ -334,6 +374,16 @@ subroutine convert_data (infile)
         exit
      end select
   end do
+
+  metadata%title           = 'GATE buoy measurements'
+  metadata%summary         = 'Buoy measurements from RV Meteor collected during '                  // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+  metadata%chief_scientist = 'Lutz Hasse, Ernst Augstein'
+  metadata%source          = 'buoy'
+  metadata%keywords        = 'GATE, ship, atmospheric measurements, ocean measurements, weather, meteorology, oceanography'
+  metadata%featureType     = 'profile'
+  metadata%platform        = ''
+  metadata%instrument      = 'buoy'
 
   ! file section 2, metadata of sampled variables, 48 lines
 
@@ -565,6 +615,8 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
 
   write ( position_str, '(F9.4,A1,F8.4)' ) position_end_lon, ' ', position_end_lat
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "buoy_end_position", 18, position_str))
+
+  call set_metadata(ncid, metadata)
   
   call handle_err(nf_enddef (ncid))
 

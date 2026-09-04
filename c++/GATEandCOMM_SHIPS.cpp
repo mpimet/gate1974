@@ -63,6 +63,17 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
         metadata.interval = 1;
         metadata.interval_unit = "D";
     }
+    metadata.title           = "GATE mapped sea-surface temperature and salinity data";
+    metadata.summary         = "Daily mean mapped data on a 0.5 x 0.5 deg mesh in the region 106W-62E, 22S-38N as part of the "
+                               "Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974)."
+                               "Data were collected from research and commerical vessels.";
+    metadata.chief_scientist = "Forida State University";
+    metadata.source          = "ship";
+    metadata.keywords        = "GATE, sea-surface temperature, sea-surface salnity, oceanography";
+    metadata.featureType     = "";
+    metadata.platform        = "";
+    metadata.instrument      = "various instruments";
+
 }
 
 std::vector<int> parseFixedWidthIntegers(std::string const& input) {

@@ -38,10 +38,10 @@ import cartopy.feature as cfeature
 
 ```python
 if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
-    rootpath="/Users/m300083/Projekte/GATE_v3.2/AIRCRAFT/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2p1/AIRCRAFT/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.2/AIRCRAFT/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2p1/AIRCRAFT/"
 
 # C130 Lockheed C-130B Hercules (L-282) https://www.airhistory.net/photo/20084/N6541C
 # C135 Air Force Boeing OC-135B         https://www.airhistory.net/photo/763834/61-2674/12674
@@ -114,8 +114,4 @@ legend = ax.legend(loc='upper left')
 
 fig.savefig('dropsonde_positions.png', dpi=300)
 plt.show()
-```
-
-```python
-
 ```

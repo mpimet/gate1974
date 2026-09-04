@@ -172,6 +172,17 @@ subroutine convert_data (infile)
      end select
   end do
 
+  metadata%title           = 'GATE mapped sea-surface temperature and salinity data'
+  metadata%summary         = 'Daily mean mapped data on a 0.5 x 0.5 deg mesh in the region 106W-62E, 22S-38N as part of the '    // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974). ' // &
+                             'Data were collected from research and commerical vessels.'
+  metadata%chief_scientist = 'Forida State University'
+  metadata%source          = 'ship'
+  metadata%keywords        = 'GATE, sea-surface temperature, sea-surface salnity, oceanography'
+  metadata%featureType     = ''
+  metadata%platform        = ''
+  metadata%instrument      = 'various instruments'
+
   ! file section 2, metadata of sampled variables
 
   do i = 1, 24
@@ -361,7 +372,8 @@ subroutine write_netcdf ( infile, no_of_measurements, dshipdata, metadata )
 
   call handle_err(nf_put_att_text(ncid, NF_GLOBAL, "history", len(trim(history)), history))
 
-  ! End the definition mode
+  call set_metadata(ncid, metadata)
+
   call handle_err(nf_enddef(ncid))
 
   ! Initialize the grid coordinates

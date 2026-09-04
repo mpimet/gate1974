@@ -32,10 +32,10 @@ from termcolor import colored
 
 ```python
 if platform.node()[:7] == "Lotsawa" or platform.node()[:8] == "d147-123":
-    rootpath="/Users/m300083/Projekte/GATE_v3.2/AIRCRAFT/"
+    rootpath="/Users/m300083/Projekte/GATE_v3.2p1/AIRCRAFT/"
     %env CDO /opt/homebrew/Caskroom/miniforge/base/envs/plotbox/bin/cdo
 else:
-    rootpath="/work/mh0287/m300083/GATE_v3.2/AIRCRAFT/"
+    rootpath="/work/mh0287/m300083/GATE_v3.2p1/AIRCRAFT/"
 
 cdo = Cdo(tempdir=rootpath+'tmp')
 
@@ -54,7 +54,7 @@ cdo = Cdo(tempdir=rootpath+'tmp')
 #
 #path=rootpath+"NASA_CONVAIR_990_MEANS"; PLATFORM="NASA Convair 990"; INTERVALL=""
 #path=rootpath+"NCAR_ELECTRA_MEANS"; PLATFORM="NCAR Elektra"; INTERVALL=""
-path=rootpath+"NCAR_SABRE_MEANS"; PLATFORM="NCAR Sabreliner"; INTERVALL=""
+#path=rootpath+"NCAR_SABRE_MEANS"; PLATFORM="NCAR Sabreliner"; INTERVALL=""
 #path=rootpath+"NOAA_DC-6_MEANS"; PLATFORM="NOAA DC-6"; INTERVALL=""
 #path=rootpath+"NOAA_US-C130_MEANS"; PLATFORM="NOAA C130"; INTERVALL=""
 #path=rootpath+"NCAR_QUEEN_AIR_MEANS"; PLATFORM="NCAR Queen Air"; INTERVALL=""
@@ -62,14 +62,19 @@ path=rootpath+"NCAR_SABRE_MEANS"; PLATFORM="NCAR Sabreliner"; INTERVALL=""
 #path=rootpath+"DC-7_CEV"; PLATFORM="DC-7"; INTERVALL="1S"
 #path=rootpath+"DC-7_CEV"; PLATFORM="DC-7"; INTERVALL="1M"
 
-#path=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208"; INTERVALL="_100F"
-#path=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208"; INTERVALL="_001F"
-#path=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_100F"
-#path=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_001F"
+#pathA=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208"; INTERVALL="_100F"
+#pathB=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_100F"
+#pathA=rootpath+"UKHERCULES_XV208a"; PLATFORM="UK Hercules XV208"; INTERVALL="_001F"
+#pathB=rootpath+"UKHERCULES_XV208b"; PLATFORM="UK Hercules XV208"; INTERVALL="_001F"
 
 #path=rootpath+"39_CHARLIE"; PLATFORM="NOAA DC-6 39 Charlie"; INTERVALL=""
 
-files = sorted(glob.glob(f"{path}/*{INTERVALL}.nc"))
+if ( PLATFORM == "UK Hercules XV208" ) :
+    filesA = sorted(glob.glob(f"{pathA}/*{INTERVALL}.nc"))
+    filesB = sorted(glob.glob(f"{pathB}/*{INTERVALL}.nc"))
+    files = filesA + filesB
+else:
+    files = sorted(glob.glob(f"{path}/*{INTERVALL}.nc"))
 ```
 
 ```python
@@ -285,19 +290,31 @@ if exist:
 ```
 
 ```python
-print ( data )
+try:
+    da=data.std_ta
+    exist=True
+except:
+    print(colored("WARNING: std of ta not available!", color="red", attrs=["bold"])) 
+    exist=False
+
+scatter_plot = da.hvplot.scatter(x='time', s=1, height=400, responsive=True,
+            title=PLATFORM+' Altitude',
+            xlabel='Time',
+            ylabel=f"{da.name} ({da.attrs.get('units', '')})")
+
+if exist:
+    display(scatter_plot)
+```
+
+**Create zarr archive**
+
+```python
+data.to_zarr(f"{PLATFORM.replace(" ", "_")}{INTERVALL}.zarr", mode='w')
 ```
 
 ```python
-data.std_ta.plot.scatter(s=1,color="black")
-```
-
-```python
-
-```
-
-```python
-
+dzarr = xr.open_zarr(f"{PLATFORM.replace(" ", "_")}{INTERVALL}.zarr")
+print (dzarr)
 ```
 
 ```python
