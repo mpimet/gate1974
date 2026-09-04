@@ -38,7 +38,7 @@ process_platform() {
   [ "$keepFiles" = false ] && rm -r ${out_path}
 
   # c++ variant for Meteor buoy
-    if [[ "${ship}" = "METEORa" || "${ship}" = "METEORb" ]]; then
+    if [[ "${ship}" = "METEORa" || "${ship}" = "METEORb" || "${ship}" = "HYDRO" ]]; then
     echo Running c++ version for ${ship}
     out_path="${outbasedir}/c++/${ship_dirs[$ship]}"
     [ ! -d "$out_path" ] && mkdir -p "$out_path"

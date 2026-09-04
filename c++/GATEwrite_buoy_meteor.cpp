@@ -36,8 +36,8 @@ void write_netcdf_buoy_meteor(
     position_str = position_str_stream.str();
 
     int ncid;
-    int dimids[2];
-    int time_id, measurement_id, timelenght_id;
+    int dimids[1];
+    int time_id, timelenght_id;
     int ws_id, wd_id, dbt_id, q_id, sst_id;
 
     float const fill_value_1   =  -1.0f;
@@ -45,22 +45,20 @@ void write_netcdf_buoy_meteor(
 
     handle_err(nc_create(outfile.c_str(), NC_CLOBBER, &ncid));
 
-    handle_err(nc_def_dim(ncid, "measurement", 1, &measurement_id));
     handle_err(nc_def_dim(ncid, "time", NC_UNLIMITED, &timelenght_id));
 
     dimids[0] = timelenght_id;
-    dimids[1] = measurement_id;
 
     handle_err(nc_def_var(ncid, "time", NC_FLOAT, 1, &dimids[0], &time_id));
 
     handle_err(nc_put_att_text(ncid, time_id, "units", seconds_since.length(), seconds_since.c_str()));
     handle_err(nc_put_att_text(ncid, time_id, "calendar", 19, "proleptic_gregorian"));
 
-    wd_id  = defineVariableAndAttribute<float, 2>(ncid, dimids, "wd",  "wind_from_direction",     "wind from direction",     metadata.wind_dir_unit,    fill_value_1);
-    ws_id  = defineVariableAndAttribute<float, 2>(ncid, dimids, "ws",  "wind_speed",              "wind speed",              metadata.wind_unit,        fill_value_1);
-    dbt_id = defineVariableAndAttribute<float, 2>(ncid, dimids, "dbt", "dry_bulb_temperature",    "dry bulb temperature",    metadata.temperature_unit, fill_value_999);
-    q_id   = defineVariableAndAttribute<float, 2>(ncid, dimids, "q",   "specific_humidity",       "specific humidity",       metadata.humidity_unit,    fill_value_999);
-    sst_id = defineVariableAndAttribute<float, 2>(ncid, dimids, "sst", "sea_surface_temperature", "sea surface temperature", metadata.temperature_unit, fill_value_999);
+    wd_id  = defineVariableAndAttribute<float, 1>(ncid, dimids, "wd",  "wind_from_direction",     "wind from direction",     metadata.wind_dir_unit,    fill_value_1);
+    ws_id  = defineVariableAndAttribute<float, 1>(ncid, dimids, "ws",  "wind_speed",              "wind speed",              metadata.wind_unit,        fill_value_1);
+    dbt_id = defineVariableAndAttribute<float, 1>(ncid, dimids, "dbt", "dry_bulb_temperature",    "dry bulb temperature",    metadata.temperature_unit, fill_value_999);
+    q_id   = defineVariableAndAttribute<float, 1>(ncid, dimids, "q",   "specific_humidity",       "specific humidity",       metadata.humidity_unit,    fill_value_999);
+    sst_id = defineVariableAndAttribute<float, 1>(ncid, dimids, "sst", "sea_surface_temperature", "sea surface temperature", metadata.temperature_unit, fill_value_999);
 
     handle_err(nc_put_att_text(ncid, NC_GLOBAL, "platform", metadata.shipname1.length(), metadata.shipname1.c_str()));
     handle_err(nc_put_att_text(ncid, NC_GLOBAL, "shipname", metadata.shipname2.length(), metadata.shipname2.c_str()));
@@ -94,8 +92,8 @@ void write_netcdf_buoy_meteor(
 
     handle_err(nc_enddef(ncid));
 
-    size_t start[2] = {0, 0};
-    size_t edge[2]  = {static_cast<size_t>(no_of_measurements), 1};
+    size_t start = 0;
+    size_t edge  = static_cast<size_t>(no_of_measurements);
 
     std::vector<float> measurement_time(no_of_measurements);
     std::vector<float> ws(no_of_measurements);
@@ -118,13 +116,13 @@ void write_netcdf_buoy_meteor(
       sst[i] = validv(rec.val_water_temperature, rec.water_temperature) ? rec.water_temperature + 273.15f : fill_value_999;
     }
 
-    handle_err(nc_put_vara_float(ncid, time_id, start, edge, measurement_time.data()));
+    handle_err(nc_put_vara_float(ncid, time_id, &start, &edge, measurement_time.data()));
 
-    handle_err(nc_put_vara_float(ncid, ws_id,  start, edge, ws.data()  ));
-    handle_err(nc_put_vara_float(ncid, wd_id,  start, edge, wd.data()  ));
-    handle_err(nc_put_vara_float(ncid, q_id,   start, edge, q.data()   ));
-    handle_err(nc_put_vara_float(ncid, dbt_id, start, edge, dbt.data() ));
-    handle_err(nc_put_vara_float(ncid, sst_id, start, edge, sst.data() ));
+    handle_err(nc_put_vara_float(ncid, ws_id,  &start, &edge, ws.data()  ));
+    handle_err(nc_put_vara_float(ncid, wd_id,  &start, &edge, wd.data()  ));
+    handle_err(nc_put_vara_float(ncid, q_id,   &start, &edge, q.data()   ));
+    handle_err(nc_put_vara_float(ncid, dbt_id, &start, &edge, dbt.data() ));
+    handle_err(nc_put_vara_float(ncid, sst_id, &start, &edge, sst.data() ));
 
     handle_err(nc_close(ncid));
 }
