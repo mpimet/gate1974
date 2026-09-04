@@ -35,8 +35,8 @@ def open_dataset(ncfile):
 
     return (
         ds.assign(
-            launch_lat=np.float32(launch_lat),
-            launch_lon=np.float32(launch_lon),
+            launch_lat=((), np.float32(launch_lat), {"units": "degrees_north"}),
+            launch_lon=((), np.float32(launch_lon), {"units": "degrees_east"}),
             platform=ds.platform,
             time=ds.flight_time,
         )
@@ -152,8 +152,6 @@ gate_A = np.array(
 ax.plot(gate_A[:3, 0], gate_A[:3, 1], transform=ccrs.PlateCarree(), color='black', linewidth=1)
 ax.plot(gate_A[-3:, 0], gate_A[-3:, 1], transform=ccrs.PlateCarree(), color='black', linewidth=1)
 unique_platforms = set(platforms)
-
-print ( unique_platforms )
 
 # Add map features
 ax.add_feature(cfeature.COASTLINE)

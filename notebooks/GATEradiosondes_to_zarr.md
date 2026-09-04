@@ -35,8 +35,8 @@ def open_dataset(ncfile):
 
     return (
         ds.assign(
-            launch_lat=np.float32(launch_lat),
-            launch_lon=np.float32(launch_lon),
+            launch_lat=((), np.float32(launch_lat), {"units": "degrees_north"}),
+            launch_lon=((), np.float32(launch_lon), {"units": "degrees_east"}),
             platform=ds.platform,
             time=ds.flight_time,
         )
