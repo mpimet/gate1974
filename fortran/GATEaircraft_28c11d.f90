@@ -161,7 +161,7 @@ subroutine convert_data (infile)
   integer :: type_id          ! file header record type indicator
   integer :: records_in_line  ! number of of records contained in one full data line
   integer :: records_handled  ! number of records allready stored away
-  integer :: this_record      ! number of current record
+  integer :: line_number      ! number of current record
 
   type (GATE_aircraft_type) :: flightdata(no_of_records_in_line)
 
@@ -297,7 +297,7 @@ subroutine convert_data (infile)
 
      if ( ierror == 0 ) then
 
-        read(line, 110, iostat=iostat ) type_id, records_in_line, records_handled, this_record, &
+        read(line, 110, iostat=iostat ) type_id, records_in_line, records_handled, line_number, &
                                         flightdata
 
         if ( ierror /= 0 ) then
@@ -371,14 +371,14 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   character(len=FILENAME_LENGHT) :: outfile
 
-  integer, parameter :: ndims = 2
+  integer, parameter :: ndims = 1
   integer :: ncid
   integer :: dimids(ndims)
   integer :: start(ndims)
   integer :: edge(ndims)
 
   integer :: measurement_time_id
-  integer :: measurement_id, timer_id
+  integer :: timer_id
   integer :: lat_id, lon_id
   integer :: p_id
   integer :: ta_id
@@ -441,17 +441,14 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   call handle_err(nf_create( outfile, NF_CLOBBER, ncid))
 
-  call handle_err(nf_def_dim(ncid, 'measurement', 1, measurement_id))
   call handle_err(nf_def_dim(ncid, 'time', NF_UNLIMITED, timer_id))
 
-  dimids(1) = measurement_id
-  dimids(2) = timer_id
+  dimids(1) = timer_id
 
-  start(:) = 1
-  edge(2)  = no_of_measurements
-  edge(1)  = 1
+  start(1) = 1
+  edge(1)  = no_of_measurements
 
-  call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
+  call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(1), measurement_time_id))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
@@ -541,7 +538,7 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
      endif
   enddo
 
-  call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), float(aircraftdata(1:no_of_measurements)%time)))
+  call handle_err(nf_put_vara(ncid, measurement_time_id, start, edge, float(aircraftdata(1:no_of_measurements)%time)))
 
   call handle_err(nf_put_vara(ncid, lat_id,      start, edge, lat))
   call handle_err(nf_put_vara(ncid, lon_id,      start, edge, lon))

@@ -207,7 +207,17 @@ subroutine convert_data (infile)
      end select
   end do
 
-  ! file section 2, metadata of sampled variables
+  metadata%title           = 'GATE aircraft atmospheric in-flight measurements'
+  metadata%summary         = 'In-flight measurements from NCAR Queen Air collected during '                  // &
+                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
+  metadata%chief_scientist = 'A. Rodi'
+  metadata%source          = 'aircraft'
+  metadata%keywords        = 'GATE, aircraft, atmospheric in-flight measurements, weather, meteorology'
+  metadata%featureType     = 'trajectory'
+  metadata%platform        = ''
+  metadata%instrument      = 'various instruments'
+
+ ! file section 2, metadata of sampled variables
 
   do i = 1, 72
      read( 10, 100, iostat=ierror ) line(1:80)
@@ -222,16 +232,6 @@ subroutine convert_data (infile)
         exit
      end select
   end do
-
-  metadata%title           = 'GATE aircraft atmospheric in-flight measurements'
-  metadata%summary         = 'In-flight measurements from NCAR Queen Air collected during '                  // &
-                             'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
-  metadata%chief_scientist = 'A. Rodi'
-  metadata%source          = 'aircraft'
-  metadata%keywords        = 'GATE, aircraft, atmospheric in-flight measurements, weather, meteorology'
-  metadata%featureType     = 'trajectory'
-  metadata%platform        = ''
-  metadata%instrument      = 'various instruments'
 
   ! file section 3
 
@@ -346,14 +346,14 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   character(len=FILENAME_LENGHT) :: outfile
 
-  integer, parameter :: ndims = 2
+  integer, parameter :: ndims = 1
   integer :: ncid
   integer :: dimids(ndims)
   integer :: start(ndims)
   integer :: edge(ndims)
 
   integer :: measurement_time_id
-  integer :: measurement_id, timer_id
+  integer :: timer_id
   integer :: lat_id, lon_id
   integer :: p_id,   std_p_id
   integer :: ta_id,  std_ta_id
@@ -406,17 +406,14 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   call handle_err(nf_create( outfile, NF_CLOBBER, ncid))
 
-  call handle_err(nf_def_dim(ncid, 'measurement', 1, measurement_id))
   call handle_err(nf_def_dim(ncid, 'time', NF_UNLIMITED, timer_id))
 
-  dimids(1) = measurement_id
-  dimids(2) = timer_id
+  dimids(1) = timer_id
 
-  start(:) = 1
-  edge(2)  = no_of_measurements
-  edge(1)  = 1
+  start(1) = 1
+  edge(1)  = no_of_measurements
 
-  call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
+  call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(1), measurement_time_id))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
 
@@ -487,7 +484,7 @@ subroutine write_netcdf ( infile, no_of_measurements, aircraftdata, metadata )
 
   enddo
 
-  call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), aircraftdata(1:no_of_measurements)%time))
+  call handle_err(nf_put_vara(ncid, measurement_time_id, start, edge, aircraftdata(1:no_of_measurements)%time))
 
   call handle_err(nf_put_vara(ncid, lat_id,     start, edge, aircraftdata(1:no_of_measurements)%latitude))
   call handle_err(nf_put_vara(ncid, lon_id,     start, edge, aircraftdata(1:no_of_measurements)%longitude))

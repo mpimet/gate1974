@@ -502,14 +502,14 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
   character(len=FILENAME_LENGHT) :: outfile
   character(len=18)  :: position_str
 
-  integer, parameter :: ndims = 2
+  integer, parameter :: ndims = 1
   integer :: ncid
   integer :: dimids(ndims)
   integer :: start(ndims)
   integer :: edge(ndims)
 
   integer :: measurement_time_id
-  integer :: measurement_id, timer_id
+  integer :: timer_id
   integer :: ws_id, wd_id
   integer :: dbt_id, q_id, sst_id
 
@@ -573,17 +573,14 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
 
   call handle_err(nf_create( outfile, NF_CLOBBER, ncid))
 
-  call handle_err(nf_def_dim(ncid, 'measurement', 1, measurement_id))
   call handle_err(nf_def_dim(ncid, 'time', NF_UNLIMITED, timer_id))
 
-  dimids(1) = measurement_id
-  dimids(2) = timer_id
+  dimids(1) = timer_id
 
-  start(:) = 1
-  edge(2)  = no_of_measurements
-  edge(1)  = 1
+  start(1) = 1
+  edge(1)  = no_of_measurements
 
-  call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(2), measurement_time_id))
+  call handle_err(nf_def_var(ncid, "time", NF_FLOAT, 1, dimids(1), measurement_time_id))
 
   call handle_err(nf_put_att_text(ncid, measurement_time_id, 'units', len(seconds_since), seconds_since))
   call handle_err(nf_put_att_text(ncid, measurement_time_id, "calendar", 19, "proleptic_gregorian"))
@@ -653,7 +650,7 @@ subroutine write_netcdf ( infile, no_of_measurements, dbuoydata, metadata )
 
   enddo
   
-  call handle_err(nf_put_vara(ncid, measurement_time_id, start(2), edge(2), dbuoydata(1:no_of_measurements)%time))
+  call handle_err(nf_put_vara(ncid, measurement_time_id, start, edge, dbuoydata(1:no_of_measurements)%time))
 
   ! Note that we have to convert western longitudes given as postive values in the ASCII file to negative numbers.
 

@@ -40,15 +40,15 @@ else:
 Cdo.env = {"SKIP_SAME_TIME": "1"}
 cdo = Cdo(tempdir=rootpath+'tmp')
 
-#path=rootpath+"FAY"; PLATFORM="Fay (1)"; INTERVALL=""
+path=rootpath+"FAY"; PLATFORM="Fay (1)"; INTERVALL=""
 #path=rootpath+"FAYE"; PLATFORM="Fay (2)"; INTERVALL=""
 #path=rootpath+"METEOR"; PLATFORM="Meteor"; INTERVALL=""
 #path=rootpath+"PLANET"; PLATFORM="Planet"; INTERVALL=""
 
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_3600S"
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_1800S"
-#path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_0180S"
 #path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_0600S"
+#path=rootpath+"DALLAS"; PLATFORM="Dallas"; INTERVALL="_0180S"
 
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_3600S"
 #path=rootpath+"JAMES_M_GILLISS"; PLATFORM="Gilliss"; INTERVALL="_1800S"
@@ -58,7 +58,7 @@ cdo = Cdo(tempdir=rootpath+'tmp')
 #path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_3600S"
 #path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_1800S"
 #path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_0600S"
-path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_0180S"
+#path=rootpath+"RESEARCHER"; PLATFORM="Researcher";  INTERVALL="_0180S"
 
 list=path+"/*"+INTERVALL+".nc"
 files = sorted(glob.glob(f"{list}"))
