@@ -93,6 +93,16 @@ void read_metadata(std::ifstream& file, GATE_metadata_type& metadata) {
                 break;
         }
     }
+    metadata.title           = "GATE buoy measurements";
+    metadata.summary         = "Buoy measurements from RV Hydrographic collected during "
+                               "Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).";
+    metadata.chief_scientist = "Myres, Thompson";
+    metadata.source          = "buoy";
+    metadata.keywords        = "GATE, ship, atmospheric measurements, ocean measurements, weather, meteorology, oceanography";
+    metadata.featureType     = "profile";
+    metadata.platform        = "Hydrographic";
+    metadata.instrument      = "buoy";
+
 }
 
 void convert_data(std::string const& infile) {

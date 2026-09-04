@@ -90,6 +90,8 @@ void write_netcdf_buoy_meteor(
     std::string position_end_str = position_end_str_stream.str();
     handle_err(nc_put_att_text(ncid, NC_GLOBAL, "buoy_end_position", 18, position_end_str.c_str()));
 
+    set_metadata(ncid, metadata);
+
     handle_err(nc_enddef(ncid));
 
     size_t start[2] = {0, 0};

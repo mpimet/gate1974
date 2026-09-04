@@ -4,6 +4,7 @@
 #include <optional>
 #include <iostream>
 #include <netcdf.h>
+#include "GATEmetadata.h"
 
 inline void handle_err(int status) {
     if (status != NC_NOERR) {
@@ -53,4 +54,5 @@ int defineVariableAndAttribute(int ncid,
 
     return var_id;
 }
+
 #endif

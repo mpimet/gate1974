@@ -16,7 +16,7 @@ LDFLAGS = -L${NETCDF_LIB} -lnetcdf -Wl,-rpath,${NETCDF_LIB}
 MAIN_SRCS = GATEbuoy_meteor.cpp GATEbuoy_hydro.cpp GATEandCOMM_SHIPS.cpp
 
 # Library source files (contain functions only)
-LIB_SRCS = GATEutils.cpp GATEdate_time.cpp GATEwrite_buoy_meteor.cpp GATEwrite_comm_ships.cpp GATEwrite_buoy_hydro.cpp
+LIB_SRCS = GATEutils.cpp GATEmetadata.cpp GATEdate_time.cpp GATEwrite_buoy_meteor.cpp GATEwrite_comm_ships.cpp GATEwrite_buoy_hydro.cpp
 
 # Object files
 MAIN_OBJS = $(MAIN_SRCS:.cpp=.o)
