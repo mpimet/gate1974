@@ -359,6 +359,8 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
   character(len=33) :: seconds_since
 
   ! some preparation for writing global attributes
+  ! note that seconds in the header section are provided
+  ! as fraction of a minute in units 1/100.
 
   write ( seconds_since , '(A14,I4,A1,2(I2.2,A1),2(I2.2,A1),I2.2)' ) &
        & 'seconds since ',                        &
@@ -371,19 +373,19 @@ subroutine write_netcdf ( infile, no_of_levels, radiosondedata, metadata )
 
   position_start_lon = metadata%lon_start%deg +      &
        &             ( metadata%lon_start%min * 60 + &
-       &               metadata%lon_start%sec ) / 3600.0
+       &               metadata%lon_start%sec * 0.6 ) / 3600.0
 
   position_start_lat = metadata%lat_start%deg +      &
        &             ( metadata%lat_start%min * 60 + &
-       &               metadata%lat_start%sec ) / 3600.0
+       &               metadata%lat_start%sec * 0.6 ) / 3600.0
 
   position_end_lon = metadata%lon_end%deg +      &
        &           ( metadata%lon_end%min * 60 + &
-       &             metadata%lon_end%sec ) / 3600.0
+       &             metadata%lon_end%sec * 0.6 ) / 3600.0
 
   position_end_lat = metadata%lat_end%deg +      &
        &           ( metadata%lat_end%min * 60 + &
-       &             metadata%lat_end%sec ) / 3600.0
+       &             metadata%lat_end%sec * 0.6 ) / 3600.0
 
   ! start writing
 
