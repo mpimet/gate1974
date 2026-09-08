@@ -207,8 +207,8 @@ subroutine convert_data (infile)
      end select
   end do
 
-  metadata%title           = 'GATE aircraft atmospheric in-flight measurements'
-  metadata%summary         = 'In-flight measurements from NCAR Queen Air collected during '                  // &
+  metadata%title           = 'NCAR Queen Air atmospheric in-flight measurements during GATE'
+  metadata%summary         = 'In-flight measurements from NCAR Queen Air collected during ' // &
                              'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
   metadata%chief_scientist = 'A. Rodi'
   metadata%source          = 'aircraft'

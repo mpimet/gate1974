@@ -209,13 +209,13 @@ subroutine convert_data (infile)
      end select
   end do
 
-  metadata%title           = 'GATE aircraft atmospheric in-flight measurements'
-
   if ( trim(adjustl(metadata%aircraftname)) == "NOAA DC-6 MEANS" ) then
+    metadata%title           = 'NOAA DC-6 atmospheric in-flight measurements during GATE'
     metadata%summary         = 'In-flight measurements from NOAA DC-6 collected during '                  // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
     metadata%chief_scientist = 'Michie'
   else if ( trim(adjustl(metadata%aircraftname)) == "NOAA_US-C130_MEANS" ) then
+    metadata%title           = 'NOAA US C130 atmospheric in-flight measurements during GATE'
     metadata%summary         = 'In-flight measurements from NOAA US C130 collected during '                  // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
     metadata%chief_scientist = 'Davis'
