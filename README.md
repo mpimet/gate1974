@@ -6,9 +6,9 @@
 
 *René Redler, Max Planck Institute for Meteorology, Hamburg*
 
-**Last updated: 13 February 2026**
+**Last updated: 8 September 2026**
 
-**Version 3.2p1**
+**Version 3.2**
 
 Processing a subset of data collected during the Global Atmospheric Research Program's (GARP) Atlantic Tropical Experiment (GATE) in summer 1974, see J.P. Kuettner, 1974: General description and central program of GATE, BAMS, 55, pp 526–530.
 
@@ -145,6 +145,11 @@ GATEsort.sh /<path to>/DATA/GATE/3.64.02.101-3.69.02.104_19740601-19740930
 - **DALLAS/fdfbef**: Some files contain data with timestamps earlier than the indicated start of measurements.
 
 ## Change log
+
+**v3.3
+
+- minor correction for seconds in launch start and end positions for radiosondes
+- minor adjustments of aircraft metadata
 
 **v3.2p1**
 
