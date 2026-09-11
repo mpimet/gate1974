@@ -325,17 +325,19 @@ subroutine convert_data (infile)
      end select
   end do
   
-  metadata%title           = 'GATE ship measurements'
 
   if ( trim(adjustl(metadata%shipname1)) == "DALLAS" ) then
+    metadata%title           = 'GATE RV Dallas ship measurements'
     metadata%summary         = 'Ship measurements from RV Dallas collected during '                  // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
     metadata%chief_scientist = 'Micheal Garstang'
   else if ( trim(adjustl(metadata%shipname1)) == "JAMES M. GILLISS" ) then
+    metadata%title           = 'GATE RV James M. Gilliss ship measurements'
     metadata%summary         = 'Ship measurements from RV James M. Gilliss collected during '                     // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
     metadata%chief_scientist = 'Peter L. Grose'
   else if ( trim(adjustl(metadata%shipname1)) == "RESEARCHER" ) then
+    metadata%title           = 'GATE RV Researcher ship measurements'
     metadata%summary         = 'Ship measurements from RV Researcher collected during '                  // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
     metadata%chief_scientist = 'James K. Sparkman'
