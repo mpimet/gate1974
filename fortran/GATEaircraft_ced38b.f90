@@ -214,7 +214,7 @@ subroutine convert_data (infile)
     metadata%summary         = 'In-flight measurements from NOAA DC-6 collected during '                  // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
     metadata%chief_scientist = 'Michie'
-  else if ( trim(adjustl(metadata%aircraftname)) == "NOAA_US-C130_MEANS" ) then
+  else if ( trim(adjustl(metadata%aircraftname)) == "NOAA US-C130 MEANS" ) then
     metadata%title           = 'NOAA US C130 atmospheric in-flight measurements during GATE'
     metadata%summary         = 'In-flight measurements from NOAA US C130 collected during '                  // &
                                'Global Atmospheric Research Program''s Atlantic Tropical Experiment (GATE, 1974).'
